@@ -46,6 +46,7 @@ Dự án này được phát triển để ứng dụng các kiến thức thự
    "ConnectionStrings": {
      "DefaultConnection": "Server=localhost;Database=MyAdminDB;User ID=sa;Password=123456;TrustServerCertificate=True"
    }
+   ```
 
 4. Bấm Ctrl + Shift + B để Build dự án và khôi phục các gói NuGet.
 
