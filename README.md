@@ -41,10 +41,10 @@ Dự án này được phát triển để ứng dụng các kiến thức thự
 2. Mở file PharmaCare.sln bằng Visual Studio.
 
 3. Mở file appsettings.json và kiểm tra lại ConnectionStrings. Cập nhật User ID và Password sao cho khớp với tài khoản SQL Server trên máy của bạn (Mặc định đang sử dụng sa và 123456).
-
-JSON
-"ConnectionStrings": {
-  "DefaultConnection": "Server=localhost;Database=MyAdminDB;User ID=sa;Password=123456;TrustServerCertificate=True"
-}
+  ```bash
+   JSON
+   "ConnectionStrings": {
+     "DefaultConnection": "Server=localhost;Database=MyAdminDB;User ID=sa;Password=123456;TrustServerCertificate=True"
+   }
 4. Bấm Ctrl + Shift + B để Build dự án và khôi phục các gói NuGet.
 
