@@ -1,0 +1,114 @@
+﻿@{
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? "Home";
+
+    bool isSanPhamActive = currentController == "Drug" ||
+                           currentController == "Categorie" ||
+                           currentController == "Unit";
+
+    bool isNhapKhoActive = currentController == "PurchaseOrder" ||
+                           currentController == "Supplier" ||
+                           currentController == "Batche";
+}
+
+<ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
+
+    <li>
+        <a class="sidebar-brand d-flex align-items-center justify-content-center" href="@Url.Action("Index", "Home")">
+            <div class="sidebar-brand-icon rotate-n-15">
+                <i class="fas fa-capsules"></i>
+            </div>
+            <div class="sidebar-brand-text mx-3">Pharmacy <sup>2.0</sup></div>
+        </a>
+    </li>
+
+    <hr class="sidebar-divider my-0">
+
+    <!-- Bảng điều khiển -->
+    <li class="nav-item @(currentController == "Home" ? "active" : "")">
+        <a class="nav-link" href="/">
+            <i class="fas fa-fw fa-desktop"></i>
+            <span>Bảng điều khiển</span>
+        </a>
+    </li>
+
+    <hr class="sidebar-divider">
+    <div class="sidebar-heading">Nghiệp vụ kho</div>
+
+    <!-- Dropdown: Sản phẩm & Thuốc -->
+    <li class="nav-item @(isSanPhamActive ? "active" : "")">
+        <a class="nav-link @(isSanPhamActive ? "" : "collapsed")" href="#" data-toggle="collapse" data-target="#collapsePharmacy"
+           aria-expanded="@(isSanPhamActive ? "true" : "false")" aria-controls="collapsePharmacy">
+            <i class="fas fa-fw fa-pills"></i>
+            <span>Sản phẩm & Thuốc</span>
+        </a>
+        <div id="collapsePharmacy" class="collapse @(isSanPhamActive ? "show" : "")" data-parent="#accordionSidebar">
+            <div class="bg-white py-2 collapse-inner rounded">
+                <a class="collapse-item @(currentController == "Drug" ? "active" : "")" asp-route="DrugPage">Danh mục thuốc</a>
+                <a class="collapse-item @(currentController == "Categorie" ? "active" : "")" asp-route="CategoriePage">Nhóm thuốc</a>
+                <a class="collapse-item @(currentController == "Unit" ? "active" : "")" asp-route="UnitPage">Đơn vị tính</a>
+            </div>
+        </div>
+    </li>
+
+    <!-- Dropdown: Nhập kho -->
+    <li class="nav-item @(isNhapKhoActive ? "active" : "")">
+        <a class="nav-link @(isNhapKhoActive ? "" : "collapsed")" href="#" data-toggle="collapse" data-target="#collapseImports"
+           aria-expanded="@(isNhapKhoActive ? "true" : "false")" aria-controls="collapseImports">
+            <i class="fas fa-fw fa-box-open"></i>
+            <span>Nhập kho</span>
+        </a>
+        <div id="collapseImports" class="collapse @(isNhapKhoActive ? "show" : "")" data-parent="#accordionSidebar">
+            <div class="bg-white py-2 collapse-inner rounded">
+                <a class="collapse-item @(currentController == "PurchaseOrder" ? "active" : "")" asp-route="PurchaseOrderPage">Phiếu nhập hàng</a>
+                <a class="collapse-item @(currentController == "Supplier" ? "active" : "")" asp-route="SupplierPage">Nhà cung cấp</a>
+                <a class="collapse-item @(currentController == "Batche" ? "active" : "")" asp-route="BatchePage">Lô hàng & Hạn dùng</a>
+            </div>
+        </div>
+    </li>
+
+    <hr class="sidebar-divider">
+    <div class="sidebar-heading">Bán hàng</div>
+
+    <!-- Bán lẻ (POS) -->
+    <li class="nav-item @(currentController == "POS" ? "active" : "")">
+        <a class="nav-link" asp-route="POSPage">
+            <i class="fas fa-fw fa-shopping-cart"></i>
+            <span>Bán lẻ (POS)</span>
+        </a>
+    </li>
+
+    <!-- Hóa đơn -->
+    <li class="nav-item @(currentController == "Invoice" ? "active" : "")">
+        <a class="nav-link" asp-route="InvoicePage">
+            <i class="fas fa-fw fa-file-invoice-dollar"></i>
+            <span>Hóa đơn bán hàng</span>
+        </a>
+    </li>
+
+    <hr class="sidebar-divider">
+    <div class="sidebar-heading">Báo cáo & Hệ thống</div>
+
+    <!-- Báo cáo -->
+    <li class="nav-item @(currentController == "Report" ? "active" : "")">
+        <a class="nav-link" asp-route="ReportPage">
+            <i class="fas fa-fw fa-chart-bar"></i>
+            <span>Báo cáo doanh thu</span>
+        </a>
+    </li>
+
+    @if (User.IsInRole("Admin"))
+    {
+        <li class="nav-item @(currentController == "Staff" ? "active" : "")">
+            <a class="nav-link" asp-route="StaffPage">
+                <i class="fas fa-fw fa-users"></i>
+                <span>Quản lý nhân viên</span>
+            </a>
+        </li>
+    }
+
+    <hr class="sidebar-divider d-none d-md-block">
+
+    <div class="text-center d-none d-md-inline">
+        <button class="rounded-circle border-0" id="sidebarToggle"></button>
+    </div>
+</ul>

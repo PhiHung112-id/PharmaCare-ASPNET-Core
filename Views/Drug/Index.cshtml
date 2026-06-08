@@ -1,0 +1,337 @@
+﻿@{
+    ViewData["Title"] = "Danh mục thuốc";
+}
+
+<div class="container-fluid fade-in px-4">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4 mt-3">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800 font-weight-bold">Danh mục thuốc</h1>
+            <p class="text-muted small mb-0">Quản lý thông tin thuốc, tồn kho và giá bán trực quan</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="@Url.Action("Trash", "Drug")" class="btn btn-light btn-sm shadow-sm rounded-pill px-3 mx-1 border" title="Thùng rác">
+                <span class="material-symbols-rounded" style="font-size: 1.1rem; vertical-align: middle;">delete_sweep</span> Thùng rác
+            </a>
+
+            <button class="btn btn-success btn-sm shadow-sm rounded-pill mx1" onclick="exportToExcel()">
+                <span class="material-symbols-rounded" style="font-size: 1.1rem; vertical-align: middle;">download</span> Xuất Excel
+            </button>
+
+            <a href="@Url.Action("Create")" class="btn btn-primary btn-sm shadow-sm rounded-pill mx-1" style="background: linear-gradient(135deg, #6366f1 0%, #4338ca 100%); border:none;">
+                <span class="material-symbols-rounded" style="font-size: 1.1rem; vertical-align: middle;">add</span> Thêm thuốc mới
+            </a>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card border-0 shadow-sm h-100 bg-gradient-indigo text-white rounded-20">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-white-50 small">Tổng số thuốc</div>
+                        <div class="h4 mb-0 font-weight-bold" id="totalDrugs">0</div>
+                    </div>
+                    <span class="material-symbols-rounded opacity-5" style="font-size: 2.5rem;">medication</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card border-0 shadow-sm h-100 bg-gradient-rose text-white rounded-20">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-white-50 small">Sắp hết hàng</div>
+                        <div class="h4 mb-0 font-weight-bold" id="lowStockCount">0</div>
+                    </div>
+                    <span class="material-symbols-rounded opacity-5" style="font-size: 2.5rem;">warning</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card border-0 shadow-sm h-100 bg-gradient-cyan text-white rounded-20">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-white-50 small">Giá trị tồn kho</div>
+                        <div class="h4 mb-0 font-weight-bold text-truncate" id="totalValue">0đ</div>
+                    </div>
+                    <span class="material-symbols-rounded opacity-5" style="font-size: 2.5rem;">inventory</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card border-0 shadow-sm h-100 bg-gradient-amber text-white rounded-20">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-white-50 small">Giá trung bình</div>
+                        <div class="h4 mb-0 font-weight-bold" id="avgPrice">0đ</div>
+                    </div>
+                    <span class="material-symbols-rounded opacity-5" style="font-size: 2.5rem;">attach_money</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bộ lọc tìm kiếm -->
+    <div class="card shadow-sm mb-4 border-0 rounded-25">
+        <div class="card-body p-4">
+            <div class="row">
+                <div class="col-md-3 mb-3">
+                    <label class="form-label small font-weight-bold text-muted">TÌM KIẾM</label>
+                    <input type="text" id="searchDrug" class="form-control rounded-pill border-light bg-light px-3" placeholder="Tên thuốc, mã thuốc...">
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label class="form-label small font-weight-bold text-muted">NHÓM THUỐC</label>
+                    <select id="categoryFilter" class="form-select rounded-pill border-light bg-light"></select>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label class="form-label small font-weight-bold text-muted">TỒN KHO</label>
+                    <select id="stockFilter" class="form-select rounded-pill border-light bg-light">
+                        <option value="">Tất cả</option>
+                        <option value="low">Sắp hết hàng (< 50)</option>
+                        <option value="out">Hết hàng (=0)</option>
+                    </select>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label class="form-label small font-weight-bold text-muted">SẮP XẾP</label>
+                    <select id="sortBy" class="form-select rounded-pill border-light bg-light">
+                        <option value="name-asc">Tên A-Z</option>
+                        <option value="price-desc">Giá giảm dần</option>
+                        <option value="stock-asc">Tồn kho tăng dần</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bảng Dữ Liệu -->
+    <div class="card shadow-sm mb-4 border-0 rounded-25 overflow-hidden">
+        <div class="card-header bg-white py-3 border-0 d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold text-primary small text-uppercase">📋 Danh sách chi tiết</h6>
+            <button class="btn btn-sm btn-light border rounded-pill" onclick="refreshTable()">
+                <span class="material-symbols-rounded" style="font-size: 1rem; vertical-align: sub;">refresh</span> Làm mới
+            </button>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" id="drugTable">
+                    <thead class="text-muted small font-weight-bold text-uppercase">
+                        <tr>
+                            <th class="pl-4">Mã</th>
+                            <th>Hình ảnh</th>
+                            <th>Tên thuốc</th>
+                            <th>Nhóm</th>
+                            <th>Giá bán</th>
+                            <th>Tồn kho</th>
+                            <th>Trạng thái</th>
+                            <th>Hạn dùng</th>
+                            <th class="text-center pr-4">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="drugTableBody"></tbody>
+                </table>
+            </div>
+            <div class="p-4 border-top">
+                <div class="d-sm-flex justify-content-between align-items-center">
+                    <div class="small text-muted mb-2 mb-sm-0">
+                        Hiển thị <span id="showingStart" class="font-weight-bold text-dark">0</span> - <span id="showingEnd" class="font-weight-bold text-dark">0</span> của <span id="totalRecords">0</span> thuốc
+                    </div>
+                    <nav><ul class="pagination pagination-sm mb-0 rounded-pill shadow-sm" id="pagination"></ul></nav>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Quick Edit -->
+<div class="modal fade" id="quickEditModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-25 shadow-lg">
+            <div class="modal-header bg-primary text-white border-0 py-3">
+                <h5 class="modal-title font-weight-bold"><span class="material-symbols-rounded mr-2" style="vertical-align: middle;">edit_note</span> Chỉnh sửa nhanh</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <input type="hidden" id="editDrugId">
+                <div class="mb-3">
+                    <label class="form-label small font-weight-bold">GIÁ BÁN (VNĐ)</label>
+                    <input type="number" id="editPrice" class="form-control rounded-pill bg-light border-light px-3">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small font-weight-bold">SỐ LƯỢNG TỒN</label>
+                    <input type="number" id="editStock" class="form-control rounded-pill bg-light border-light px-3">
+                </div>
+            </div>
+            <div class="modal-footer border-0 p-4 pt-0">
+                <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Đóng</button>
+                <button type="button" class="btn btn-primary rounded-pill px-4" onclick="saveQuickEdit()">Lưu thay đổi</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="~/js/site-pagination.js"></script>
+
+    <script>
+        let drugsData = @Html.Raw(ViewBag.DrugsJson ?? "[]");
+        let currentPage = 1;
+        let rowsPerPage = 10;
+        let currentFilters = { search: '', category: '', stockStatus: '', sortBy: 'name-asc' };
+
+        document.addEventListener("DOMContentLoaded", () => {
+            populateCategories();
+            renderTable();
+            setupEventListeners();
+            updateStatistics();
+        });
+
+        // 2. CÁC HÀM TIỆN ÍCH (HELPER)
+        function formatCurrency(v) { return new Intl.NumberFormat('vi-VN').format(v) + 'đ'; }
+        function formatDate(d) { return d ? new Date(d).toLocaleDateString('vi-VN') : 'Không có'; }
+        function getStockStatus(s) {
+            return s <= 0 ? {class:'bg-danger text-white', text:'Hết hàng'}
+                         : s < 50 ? {class:'bg-warning text-dark', text:'Sắp hết'}
+                         : {class:'bg-success text-white', text:'Bình thường'};
+        }
+
+        function populateCategories() {
+            const categories = [...new Set(drugsData.map(d => d.category))];
+            const select = document.getElementById('categoryFilter');
+            select.innerHTML = '<option value="">Tất cả nhóm</option>' + categories.map(c => `<option value="${c}">${c}</option>`).join('');
+        }
+
+        // 3. LOGIC LỌC DỮ LIỆU
+        function filterData() {
+            let res = drugsData.filter(d =>
+                (d.name.toLowerCase().includes(currentFilters.search.toLowerCase()) || d.id.toLowerCase().includes(currentFilters.search.toLowerCase())) &&
+                (currentFilters.category === '' || d.category === currentFilters.category)
+            );
+            if (currentFilters.stockStatus === 'low') res = res.filter(d => d.stock > 0 && d.stock < 50);
+            if (currentFilters.stockStatus === 'out') res = res.filter(d => d.stock <= 0);
+
+            if (currentFilters.sortBy === 'name-asc') res.sort((a,b) => a.name.localeCompare(b.name));
+            if (currentFilters.sortBy === 'price-desc') res.sort((a,b) => b.price - a.price);
+            if (currentFilters.sortBy === 'stock-asc') res.sort((a,b) => a.stock - b.stock);
+
+            return res;
+        }
+
+        function drugRowTemplate(drug) {
+            const stockStatus = getStockStatus(drug.stock);
+            return `
+                <tr>
+                    <td class="pl-4 text-muted small font-weight-bold">${drug.id}</td>
+                    <td><img src="${drug.image}" class="drug-thumb shadow-sm" style="width:50px; border-radius:8px;" onerror="this.src='https://placehold.co/50x50?text=Thuốc'"></td>
+                    <td>
+                        <a  class="text-dark font-weight-bold text-decoration-none">${drug.name}</a>
+                    </td>
+                    <td><span class="badge bg-light text-primary px-3 rounded-pill">${drug.category}</span></td>
+                    <td class="font-weight-bold text-dark">${formatCurrency(drug.price)}</td>
+                    <td><span class="badge ${stockStatus.class} px-2 py-1">${drug.stock} ${drug.unit}</span></td>
+                    <td><small>${stockStatus.text}</small></td>
+                    <td class="small text-muted">${formatDate(drug.expiryDate)}</td>
+                    <td class="text-center pr-4">
+                        <button class="btn btn-sm btn-light text-primary" onclick="quickEdit('${drug.id}')" title="Sửa nhanh"><span class="material-symbols-rounded" style="font-size: 1.2rem;">edit_square</span></button>
+                        <a href="/danh-muc/sua-thuoc/${drug.id}" class="btn btn-sm btn-light text-warning" title="Sửa chi tiết"><span class="material-symbols-rounded" style="font-size: 1.2rem;">edit</span></a>
+                        <form action="/danh-muc/xoa-thuoc" method="post" class="d-inline" onsubmit="return confirm('Bạn có chắc muốn xóa thuốc này?');">
+                            <input type="hidden" name="id" value="${drug.id}">
+                            <button type="submit" class="btn btn-sm btn-light text-danger" title="Xóa"><span class="material-symbols-rounded" style="font-size: 1.2rem;">delete</span></button>
+                        </form>
+                    </td>
+                </tr>`;
+        }
+
+        function renderTable() {
+            const filtered = filterData();
+
+            commonPagination(
+                filtered,
+                currentPage,
+                rowsPerPage,
+                'drugTableBody',
+                'pagination',
+                drugRowTemplate,
+                'changePage'
+            );
+        }
+
+        function changePage(page) {
+            currentPage = page;
+            renderTable();
+        }
+
+        function setupEventListeners() {
+            ['searchDrug', 'categoryFilter', 'stockFilter', 'sortBy'].forEach(id => {
+                document.getElementById(id).addEventListener('change', updateFilters);
+                if (id === 'searchDrug') document.getElementById(id).addEventListener('input', updateFilters);
+            });
+        }
+
+        function updateFilters() {
+            currentFilters.search = document.getElementById('searchDrug').value;
+            currentFilters.category = document.getElementById('categoryFilter').value;
+            currentFilters.stockStatus = document.getElementById('stockFilter').value;
+            currentFilters.sortBy = document.getElementById('sortBy').value;
+            currentPage = 1;
+            renderTable();
+        }
+
+        function quickEdit(id) {
+            const drug = drugsData.find(d => d.id === id);
+            if(drug) {
+                document.getElementById('editDrugId').value = id;
+                document.getElementById('editPrice').value = drug.price;
+                document.getElementById('editStock').value = drug.stock;
+                new bootstrap.Modal(document.getElementById('quickEditModal')).show();
+            }
+        }
+
+        function saveQuickEdit() {
+            const id = document.getElementById('editDrugId').value;
+            const price = document.getElementById('editPrice').value;
+            const stock = document.getElementById('editStock').value;
+
+            fetch('/danh-muc/quick-update', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams({ id: id, price: price, stock: stock })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) {
+                    const index = drugsData.findIndex(d => d.id === id);
+                    drugsData[index].price = parseFloat(price);
+                    drugsData[index].stock = parseInt(stock);
+                    renderTable();
+                    updateStatistics();
+                    bootstrap.Modal.getInstance(document.getElementById('quickEditModal')).hide();
+                    showNotification('Cập nhật SQL thành công!', 'success');
+                }
+            });
+        }
+
+        function showNotification(m, t) {
+            const n = document.createElement('div');
+            n.className = `alert alert-${t} position-fixed top-0 end-0 m-3 shadow-lg fade show`;
+            n.style.zIndex = '9999'; n.innerHTML = m;
+            document.body.appendChild(n); setTimeout(() => n.remove(), 3000);
+        }
+
+        function updateStatistics() {
+            document.getElementById('totalDrugs').innerText = drugsData.length;
+            let totalVal = drugsData.reduce((s, d) => s + (d.price * d.stock), 0);
+            document.getElementById('totalValue').innerText = formatCurrency(totalVal);
+            document.getElementById('lowStockCount').innerText = drugsData.filter(d => d.stock < 50).length;
+            document.getElementById('avgPrice').innerText = formatCurrency(drugsData.length > 0 ? drugsData.reduce((s, d) => s + d.price, 0) / drugsData.length : 0);
+        }
+
+        function refreshTable() { location.reload(); }
+
+        function exportToExcel() {
+            const ws = XLSX.utils.json_to_sheet(drugsData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Drugs");
+            XLSX.writeFile(wb, "DanhSachThuoc.xlsx");
+        }
+    </script>
+}

@@ -1,0 +1,205 @@
+﻿@model PharmaCare.Models.Drug
+@{
+    bool isEdit = !string.IsNullOrEmpty(Model?.MaThuoc);
+
+    ViewData["Title"] = isEdit ? "Cập nhật thuốc" : "Thêm thuốc mới";
+
+    var drugUnits = ViewBag.DrugUnits as List<PharmaCare.Models.DrugUnit> ?? new List<PharmaCare.Models.DrugUnit>();
+    var baseUnit = drugUnits.FirstOrDefault(x => x.IsBaseUnit == true);
+    var baseUnitId = baseUnit?.UnitId ?? 0;
+    var basePrice = baseUnit?.Price ?? Model?.GiaBan ?? 0;
+    var convs = drugUnits.Where(x => x.IsBaseUnit == false).ToList();
+}
+
+<div class="container-fluid mt-4 fade-in">
+    <div class="card shadow mb-4 border-0 rounded-25">
+        <div class="card-header py-3 bg-white border-0 d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold @(isEdit ? "text-warning" : "text-primary")">
+                <span class="material-symbols-rounded align-middle me-2">@(isEdit ? "edit_document" : "add_box")</span>
+                @(isEdit ? $"Cập nhật thuốc: {Model?.TenThuoc}" : "Thêm thuốc mới vào hệ thống")
+            </h6>
+            <a href="/danh-muc" class="btn btn-sm btn-light border rounded-pill px-3">
+                <span class="material-symbols-rounded align-middle" style="font-size: 1.1rem;">arrow_back</span> Quay lại
+            </a>
+        </div>
+        <div class="card-body px-4 pb-4">
+            <form action="@(isEdit ? $"/danh-muc/sua-thuoc/{Model?.MaThuoc}" : "/danh-muc/them-thuoc")" method="post" enctype="multipart/form-data">
+
+                @if (isEdit)
+                {
+                    <input type="hidden" name="id" value="@Model?.MaThuoc" />
+                }
+
+                <div class="row">
+                    <!-- CỘT TRÁI: HÌNH ẢNH -->
+                    <div class="col-md-3 text-center mb-3">
+                        <label class="font-weight-bold small d-block text-muted mb-3">HÌNH ẢNH THUỐC</label>
+                        <div class="position-relative d-inline-block">
+                            <img id="imagePreview" src="@(!string.IsNullOrEmpty(Model?.HinhAnh) ? Model.HinhAnh : "https://placehold.co/400x400?text=Chưa+có+ảnh")"
+                                 class="img-thumbnail shadow-sm mb-3"
+                                 style="width: 100%; max-width: 220px; aspect-ratio: 1; object-fit: cover; border-radius: 20px;" />
+                        </div>
+                        <input type="file" class="form-control form-control-sm rounded-pill" style="height:50px" name="HinhAnhUpload" accept="image/*" onchange="previewImage(this);" />
+                        <small class="text-muted mt-2 d-block">@(isEdit ? "Chọn ảnh mới để thay thế" : "Định dạng: JPG, PNG, GIF")</small>
+                    </div>
+
+                    <!-- CỘT PHẢI: THÔNG TIN -->
+                    <div class="col-md-9 border-start ps-md-4">
+                        <div class="row">
+                            <div class="col-md-6 form-group mb-3">
+                                <label class="font-weight-bold small text-muted required">TÊN THUỐC (*)</label>
+                                <input type="text" class="form-control bg-light rounded-pill px-3 border-light" name="TenThuoc" value="@Model?.TenThuoc" required />
+                            </div>
+                            <div class="col-md-6 form-group mb-3">
+                                <label class="font-weight-bold small text-muted">NHÓM THUỐC</label>
+                                <select class="form-select bg-light rounded-pill px-3 border-light" name="MaNhom">
+                                    <option value="">-- Chọn nhóm --</option>
+                                    @if (ViewBag.Categories != null)
+                                    {
+                                        foreach (var cat in ViewBag.Categories)
+                                        {
+                                            <option value="@cat.MaNhom" selected="@(Model?.MaNhom == cat.MaNhom)">@cat.TenNhom</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- KHỐI ĐƠN VỊ CƠ BẢN -->
+                        <div class="p-3 rounded-xl mb-3 border">
+                            <h6 class="font-weight-bold text-dark mb-3"><span class="material-symbols-rounded align-middle text-primary me-1">straighten</span> Đơn vị cơ bản & Tồn kho</h6>
+                            <div class="row">
+                                <div class="col-md-4 form-group mb-0">
+                                    <label class="font-weight-bold small text-muted required">ĐƠN VỊ NHỎ NHẤT</label>
+                                    <select class="form-select rounded-pill px-3" name="BaseUnitId" required>
+                                        <option value="">-- Chọn ĐV --</option>
+                                        @if (ViewBag.Units != null)
+                                        {
+                                            foreach (var unit in ViewBag.Units)
+                                            {
+                                                <option value="@unit.Id" selected="@(unit.Id == baseUnitId)">@unit.Name</option>
+                                            }
+                                        }
+                                    </select>
+                                </div>
+                                <div class="col-md-4 form-group mb-0">
+                                    <label class="font-weight-bold small text-muted required">GIÁ BÁN CƠ BẢN (VNĐ)</label>
+                                    <input type="number" class="form-control rounded-pill px-3" name="BasePrice" value="@((int)basePrice)" required min="0" />
+                                </div>
+                                <div class="col-md-4 form-group mb-0">
+                                    <label class="font-weight-bold small text-muted">TỒN KHO</label>
+                                    <input type="number" class="form-control rounded-pill px-3" name="TonKho" value="@(Model?.TonKho ?? 0)" min="0" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- KHỐI QUY ĐỔI ĐƠN VỊ -->
+                        <div class="border p-3 rounded-xl">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="font-weight-bold text-dark m-0"><span class="material-symbols-rounded align-middle text-success me-1">account_tree</span> Đơn vị quy đổi</h6>
+                                <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-3" onclick="addConversionRow()">
+                                    <span class="material-symbols-rounded align-middle" style="font-size: 1rem;">add</span> Thêm quy đổi
+                                </button>
+                            </div>
+
+                            <div class="table-responsive">
+                                <table class="table table-borderless align-middle mb-0" id="conversionTable">
+                                    <thead class="text-muted small">
+                                        <tr class="border-bottom">
+                                            <th style="width: 35%">Đơn vị lớn</th>
+                                            <th style="width: 30%">Quy đổi (= Bao nhiêu ĐV cơ bản?)</th>
+                                            <th style="width: 25%">Giá bán (VNĐ)</th>
+                                            <th style="width: 10%" class="text-center">Xóa</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="conversionBody">
+                                        @for (int i = 0; i < convs.Count; i++)
+                                        {
+                                            <tr>
+                                                <td class="ps-0">
+                                                    <select class="form-select rounded-pill px-3 border-light bg-light" name="Conversions[@i].UnitId" required>
+                                                        <option value="">-- Chọn đơn vị --</option>
+                                                        @foreach (var unit in ViewBag.Units)
+                                                        {
+                                                            <option value="@unit.Id" selected="@(unit.Id == convs[i].UnitId)">@unit.Name</option>
+                                                        }
+                                                    </select>
+                                                </td>
+                                                <td>
+                                                    <div class="input-group">
+                                                        <span class="input-group-text bg-light border-light rounded-start-pill">=</span>
+                                                        <input type="number" name="Conversions[@i].ConversionRate" class="form-control bg-light border-light rounded-end-pill" value="@convs[i].ConversionRate" required min="2">
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <input type="number" name="Conversions[@i].Price" class="form-control bg-light border-light rounded-pill px-3" value="@((int)convs[i].Price)" required min="0">
+                                                </td>
+                                                <td class="text-center pe-0">
+                                                    <button type="button" class="btn btn-sm btn-light text-danger rounded-circle" onclick="this.closest('tr').remove()"><span class="material-symbols-rounded align-middle">close</span></button>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="mt-4 mb-4 border-light" />
+                <div class="text-end">
+                    <a href="/danh-muc" class="btn btn-light rounded-pill px-4 text-muted me-2 border">Hủy bỏ</a>
+                    <button type="submit" class="btn @(isEdit ? "btn-warning text-white bg-gradient-amber" : "btn-primary bg-gradient-indigo") rounded-pill px-4 shadow-sm border-0">
+                        <span class="material-symbols-rounded align-middle" style="font-size: 1.1rem;">save</span> @(isEdit ? "Cập nhật thuốc" : "Lưu thuốc mới")
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<template id="unitSelectTemplate">
+    <select class="form-select rounded-pill px-3 border-light bg-light" name="Conversions[INDEX].UnitId" required>
+        <option value="">-- Chọn đơn vị --</option>
+        @if (ViewBag.Units != null)
+        {
+            foreach (var unit in ViewBag.Units)
+            {
+                <option value="@unit.Id">@unit.Name</option>
+            }
+        }
+    </select>
+</template>
+
+@section Scripts {
+    <script>
+        function previewImage(input) {
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function(e) { document.getElementById('imagePreview').src = e.target.result; }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        let convIndex = @convs.Count;
+        function addConversionRow() {
+            const tbody = document.getElementById('conversionBody');
+            const selectHtml = document.getElementById('unitSelectTemplate').innerHTML.replace(/INDEX/g, convIndex);
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td class="ps-0">${selectHtml}</td>
+                <td>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-light rounded-start-pill">=</span>
+                        <input type="number" name="Conversions[${convIndex}].ConversionRate" class="form-control bg-light border-light rounded-end-pill" placeholder="VD: 10" required min="2">
+                    </div>
+                </td>
+                <td><input type="number" name="Conversions[${convIndex}].Price" class="form-control bg-light border-light rounded-pill px-3" placeholder="Giá" required min="0"></td>
+                <td class="text-center pe-0"><button type="button" class="btn btn-sm btn-light text-danger rounded-circle" onclick="this.closest('tr').remove()"><span class="material-symbols-rounded align-middle">close</span></button></td>
+            `;
+            tbody.appendChild(tr);
+            convIndex++;
+        }
+    </script>
+}

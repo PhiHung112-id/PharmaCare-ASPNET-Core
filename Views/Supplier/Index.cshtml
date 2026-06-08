@@ -1,0 +1,230 @@
+﻿@model List<PharmaCare.Models.Supplier>
+@using System.Text.Json;
+@{
+    ViewData["Title"] = "Quản lý Nhà cung cấp";
+}
+
+<style>
+    .rounded-25 {
+        border-radius: 25px !important;
+    }
+
+    .rounded-15 {
+        border-radius: 15px !important;
+    }
+</style>
+
+<div class="container-fluid mt-4 fade-in">
+    <!-- 1. TOP TOOLBAR -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800 font-weight-bold">
+            <span class="material-symbols-rounded text-success align-middle" style="font-size: 2.5rem;">local_shipping</span>
+            Nhà cung cấp
+        </h1>
+
+        <div class="d-flex gap-2 align-items-center">
+            <div class="input-group input-group-sm" style="width: 300px;">
+                <span class="input-group-text bg-white border-end-0 rounded-start-pill ps-3">
+                    <span class="material-symbols-rounded text-muted" style="font-size: 1.1rem;">search</span>
+                </span>
+                <input type="text" id="searchSupplier" class="form-control border-start-0 rounded-end-pill" placeholder="Tìm tên, mã, SĐT...">
+            </div>
+
+            <button class="btn btn-success shadow-sm rounded-pill px-4 border-0 mx-1"
+                    style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);" onclick="openModal()">
+                <span class="material-symbols-rounded align-middle me-1">add</span> Thêm đối tác
+            </button>
+        </div>
+    </div>
+
+    <!-- 2. BẢNG DANH SÁCH -->
+    <div class="card shadow-sm mb-4 border-0 rounded-25 overflow-hidden">
+        <div class="card-body p-0 d-flex flex-column">
+            <div class="table-responsive flex-grow-1">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="text-muted small text-uppercase font-weight-bold">
+                        <tr>
+                            <th class="ps-4 py-3">Mã NCC</th>
+                            <th>Tên nhà cung cấp</th>
+                            <th>Số điện thoại</th>
+                            <th>Địa chỉ</th>
+                            <th class="text-center pe-4" style="width: 150px;">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="supplierTableBody">
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 3. THANH PHÂN TRANG -->
+            <div class="p-4 border-top bg-white mt-auto">
+                <div class="d-sm-flex justify-content-between align-items-center">
+                    <div class="small text-muted mb-3 mb-sm-0">
+                        Hiển thị <span id="showingStart" class="font-weight-bold text-dark">0</span> - <span id="showingEnd" class="font-weight-bold text-dark">0</span> của <span id="totalRecords" class="font-weight-bold text-dark">0</span> NCC
+                    </div>
+                    <nav>
+                        <ul class="pagination pagination-sm mb-0 shadow-sm rounded-pill" id="pagination"></ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL THÊM/SỬA -->
+<div class="modal fade" id="supplierModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-25 shadow">
+            <form action="/Suppliers/Save" method="post">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title font-weight-bold text-success" id="modalTitle">Thêm Nhà cung cấp</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="MaNcc" id="MaNcc">
+                    <div class="mb-3">
+                        <label class="small font-weight-bold text-muted">TÊN NHÀ CUNG CẤP</label>
+                        <input type="text" class="form-control rounded-pill bg-light border-0 px-3 py-2" name="TenNcc" id="TenNcc" required placeholder="Tên đối tác...">
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="small font-weight-bold text-muted">SỐ ĐIỆN THOẠI</label>
+                            <input type="text" class="form-control rounded-pill bg-light border-0 px-3 py-2" name="SoDienThoai" id="SoDienThoai" placeholder="090...">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="small font-weight-bold text-muted">EMAIL</label>
+                            <input type="email" class="form-control rounded-pill bg-light border-0 px-3 py-2" name="Email" id="Email" placeholder="email@gmail.com">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="small font-weight-bold text-muted">ĐỊA CHỈ</label>
+                        <textarea class="form-control rounded-15 bg-light border-0 p-3" name="DiaChi" id="DiaChi" rows="2" placeholder="Địa chỉ trụ sở..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-success rounded-pill px-4 shadow-sm border-0"
+                            style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                        Lưu thông tin
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/site-pagination.js"></script>
+
+    <script>
+        let allSuppliers = @Html.Raw(JsonSerializer.Serialize(Model ?? new List<PharmaCare.Models.Supplier>()));
+        const rowsPerPage = 8; 
+        let currentPage = 1;
+        let searchQuery = "";
+
+        const modalElement = document.getElementById('supplierModal');
+        const myModal = new bootstrap.Modal(modalElement);
+
+        document.addEventListener("DOMContentLoaded", () => {
+            renderTable();
+
+            const searchInput = document.getElementById('searchSupplier');
+            if (searchInput) {
+                searchInput.addEventListener('input', (e) => {
+                    searchQuery = e.target.value.toLowerCase();
+                    currentPage = 1;
+                    renderTable();
+                });
+            }
+        });
+
+        function supplierRowTemplate(item, index) {
+            return `
+                <tr>
+                    <td class="ps-4 font-weight-bold text-success align-middle">#${item.MaNcc}</td>
+                    <td class="font-weight-bold text-dark align-middle">${item.TenNcc}</td>
+                    <td class="align-middle">${item.SoDienThoai || '---'}</td>
+                    <td class="small text-secondary text-truncate align-middle" style="max-width: 250px;">${item.DiaChi || '---'}</td>
+
+                    <!-- CỘT THAO TÁC SẠCH SẼ, KHÔNG BỊ DÍNH -->
+                    <td class="text-center pe-4 align-middle">
+                        <div class="d-flex justify-content-center align-items-center">
+
+                            <!-- Nút Sửa -->
+                            <button class="btn btn-sm btn-light text-warning rounded shadow-sm mx-1"
+                                    onclick="editSupplier('${item.MaNcc}', '${item.TenNcc}', '${item.SoDienThoai || ''}', '${item.DiaChi || ''}', '${item.Email || ''}')" title="Sửa">
+                                <span class="material-symbols-rounded align-middle" style="font-size: 1.2rem;">edit_square</span>
+                            </button>
+
+                            <!-- Nút Xóa -->
+                            <button class="btn btn-sm btn-light text-danger rounded shadow-sm mx-1"
+                                    onclick="deleteSupplier('${item.MaNcc}')" title="Xóa">
+                                <span class="material-symbols-rounded align-middle" style="font-size: 1.2rem;">delete</span>
+                            </button>
+
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }
+
+        function renderTable() {
+            const filteredData = allSuppliers.filter(s =>
+                s.TenNcc.toLowerCase().includes(searchQuery) ||
+                s.MaNcc.toLowerCase().includes(searchQuery) ||
+                (s.SoDienThoai && s.SoDienThoai.includes(searchQuery))
+            );
+
+            commonPagination(
+                filteredData,
+                currentPage,
+                rowsPerPage,
+                'supplierTableBody',
+                'pagination',
+                supplierRowTemplate,
+                'changePage'
+            );
+        }
+
+        function changePage(page) {
+            currentPage = page;
+            renderTable();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Mở Modal Thêm mới
+        function openModal() {
+            document.getElementById('modalTitle').innerText = "Thêm Nhà cung cấp";
+            document.getElementById('MaNcc').value = "";
+            document.getElementById('TenNcc').value = "";
+            document.getElementById('SoDienThoai').value = "";
+            document.getElementById('Email').value = "";
+            document.getElementById('DiaChi').value = "";
+            myModal.show();
+        }
+
+        // Mở Modal Sửa
+        function editSupplier(id, name, phone, address, email) {
+            document.getElementById('modalTitle').innerText = "Sửa thông tin đối tác";
+            document.getElementById('MaNcc').value = id;
+            document.getElementById('TenNcc').value = name;
+            document.getElementById('SoDienThoai').value = phone;
+            document.getElementById('Email').value = email;
+            document.getElementById('DiaChi').value = address;
+            myModal.show();
+        }
+
+        // Xóa Nhà cung cấp
+        function deleteSupplier(id) {
+            if(confirm('Bạn có chắc chắn muốn xóa nhà cung cấp #' + id + '?')) {
+                $.post('/Suppliers/Delete', { id: id }, function(res) {
+                    if(res.success) {
+                        location.reload();
+                    } else {
+                        alert('Lỗi: Không thể xóa đối tác này (có thể đang có dữ liệu liên quan)!');
+                    }
+                });
+            }
+        }
+    </script>
+}

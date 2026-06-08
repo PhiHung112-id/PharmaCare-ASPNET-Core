@@ -1,0 +1,409 @@
+﻿/* ============================================ */
+/* DARK MODE - NÂNG CẤP CHO SB ADMIN 2 */
+/* ============================================ */
+
+/* Class chính cho dark mode */
+.theme-dark,
+.theme-dark body,
+body.theme-dark {
+    background-color: #0f172a !important;
+}
+
+    /* === SIDEBAR === */
+    .theme-dark .sidebar,
+    .theme-dark .bg-gradient-primary,
+    .theme-dark .sidebar-dark {
+        background: linear-gradient(180deg, #0a0f1a 0%, #0f172a 100%) !important;
+        background-color: #0f172a !important;
+    }
+
+        .theme-dark .sidebar .nav-link {
+            color: #94a3b8 !important;
+        }
+
+            .theme-dark .sidebar .nav-link:hover {
+                color: #ffffff !important;
+                background-color: rgba(255, 255, 255, 0.08) !important;
+            }
+
+        .theme-dark .sidebar .nav-item.active .nav-link {
+            color: #ffffff !important;
+            background: linear-gradient(90deg, #0f766e 0%, #14b8a6 100%) !important;
+        }
+
+        .theme-dark .sidebar .sidebar-brand {
+            background: rgba(0, 0, 0, 0.2) !important;
+        }
+
+        .theme-dark .sidebar .sidebar-heading {
+            color: #5b6e8c !important;
+        }
+
+    .theme-dark .sidebar-divider {
+        background-color: #1e293b !important;
+    }
+
+    /* === TOPBAR === */
+    .theme-dark .topbar,
+    .theme-dark .navbar.bg-white,
+    .theme-dark .bg-white {
+        background-color: #1e293b !important;
+        background: #1e293b !important;
+    }
+
+        .theme-dark .topbar .nav-link,
+        .theme-dark .topbar .text-gray-600,
+        .theme-dark .topbar .small {
+            color: #cbd5e1 !important;
+        }
+
+        .theme-dark .topbar .dropdown-menu {
+            background-color: #1e293b !important;
+            border: 1px solid #334155 !important;
+        }
+
+        .theme-dark .topbar .dropdown-item {
+            color: #cbd5e1 !important;
+        }
+
+            .theme-dark .topbar .dropdown-item:hover {
+                background-color: #334155 !important;
+                color: #ffffff !important;
+            }
+
+    .theme-dark .topbar-divider {
+        border-right-color: #334155 !important;
+    }
+
+    /* === MAIN CONTENT & CARDS === */
+    .theme-dark #content-wrapper,
+    .theme-dark .container-fluid {
+        background-color: #0f172a !important;
+    }
+
+    .theme-dark .card,
+    .theme-dark .card.shadow {
+        background-color: #1e293b !important;
+        border: 1px solid #334155 !important;
+        box-shadow: 0 0.15rem 1.75rem 0 rgba(0, 0, 0, 0.4) !important;
+    }
+
+    .theme-dark .card-header,
+    .theme-dark .card-footer {
+        background-color: #1a2538 !important;
+        border-color: #334155 !important;
+    }
+
+    .theme-dark .card .text-gray-800,
+    .theme-dark .card .text-dark,
+    .theme-dark .card .h5,
+    .theme-dark .card .h6,
+    .theme-dark .card h1,
+    .theme-dark .card h2,
+    .theme-dark .card h3,
+    .theme-dark .card h4,
+    .theme-dark .card p {
+        color: #e2e8f0 !important;
+    }
+
+    .theme-dark .card .text-muted {
+        color: #94a3b8 !important;
+    }
+
+    /* === BORDER LEFT COLORS === */
+    .theme-dark .border-left-primary {
+        border-left-color: #0f766e !important;
+    }
+
+    .theme-dark .border-left-success {
+        border-left-color: #059669 !important;
+    }
+
+    .theme-dark .border-left-warning {
+        border-left-color: #d97706 !important;
+    }
+
+    .theme-dark .border-left-danger {
+        border-left-color: #dc2626 !important;
+    }
+
+    .theme-dark .border-left-info {
+        border-left-color: #0284c7 !important;
+    }
+
+    /* === TABLES === */
+    .theme-dark .table {
+        color: #e2e8f0 !important;
+    }
+
+        .theme-dark .table thead th {
+            color: #94a3b8 !important;
+            border-bottom-color: #334155 !important;
+        }
+
+        .theme-dark .table tbody tr {
+            background-color: #1e293b !important;
+        }
+
+        .theme-dark .table td,
+        .theme-dark .table th {
+            border-top-color: #334155 !important;
+        }
+
+    .theme-dark .table-hover tbody tr:hover {
+        background-color: #2d3a4e !important;
+        color: #ffffff !important;
+    }
+
+    /* === FORMS === */
+    .theme-dark .form-control,
+    .theme-dark .input-group-text {
+        background-color: #0f172a !important;
+        border-color: #334155 !important;
+        color: #e2e8f0 !important;
+    }
+
+        .theme-dark .form-control:focus {
+            background-color: #1e293b !important;
+            border-color: #0f766e !important;
+            box-shadow: 0 0 0 0.2rem rgba(15, 118, 110, 0.25) !important;
+        }
+
+    .theme-dark .form-label,
+    .theme-dark label {
+        color: #cbd5e1 !important;
+    }
+
+    /* === BUTTONS === */
+    .theme-dark .btn-light {
+        background-color: #334155 !important;
+        border-color: #475569 !important;
+        color: #e2e8f0 !important;
+    }
+
+        .theme-dark .btn-light:hover {
+            background-color: #475569 !important;
+        }
+
+    .theme-dark .btn-secondary {
+        background-color: #475569 !important;
+        border-color: #64748b !important;
+    }
+
+    /* === DROPDOWN === */
+    .theme-dark .dropdown-menu {
+        background-color: #1e293b !important;
+        border: 1px solid #334155 !important;
+    }
+
+    .theme-dark .dropdown-item {
+        color: #cbd5e1 !important;
+    }
+
+        .theme-dark .dropdown-item:hover {
+            background-color: #334155 !important;
+            color: #ffffff !important;
+        }
+
+    .theme-dark .dropdown-divider {
+        border-top-color: #334155 !important;
+    }
+
+    /* === MODAL === */
+    .theme-dark .modal-content {
+        background-color: #1e293b !important;
+        border: 1px solid #334155 !important;
+    }
+
+    .theme-dark .modal-header,
+    .theme-dark .modal-footer {
+        border-color: #334155 !important;
+    }
+
+    .theme-dark .modal-title,
+    .theme-dark .modal-body {
+        color: #e2e8f0 !important;
+    }
+
+    .theme-dark .close {
+        color: #ffffff !important;
+    }
+
+    /* === FOOTER === */
+    .theme-dark footer.sticky-footer,
+    .theme-dark .footer {
+        background-color: #1e293b !important;
+    }
+
+        .theme-dark footer .copyright,
+        .theme-dark .footer .text-muted {
+            color: #94a3b8 !important;
+        }
+
+    /* === CHARTS === */
+    .theme-dark canvas {
+        filter: brightness(0.8) contrast(1.2);
+    }
+
+    /* === ALERTS & BADGES === */
+    .theme-dark .alert-light {
+        background-color: #334155 !important;
+        border-color: #475569 !important;
+        color: #e2e8f0 !important;
+    }
+
+    .theme-dark .badge-light {
+        background-color: #334155 !important;
+        color: #e2e8f0 !important;
+    }
+
+    /* === PAGINATION === */
+    .theme-dark .page-link {
+        background-color: #1e293b !important;
+        border-color: #334155 !important;
+        color: #cbd5e1 !important;
+    }
+
+        .theme-dark .page-link:hover {
+            background-color: #334155 !important;
+            color: #ffffff !important;
+        }
+
+    .theme-dark .page-item.active .page-link {
+        background-color: #0f766e !important;
+        border-color: #0f766e !important;
+    }
+
+    /* === PROGRESS BAR === */
+    .theme-dark .progress {
+        background-color: #334155 !important;
+    }
+
+    /* === SCROLLBAR === */
+    .theme-dark ::-webkit-scrollbar-track {
+        background: #0f172a;
+    }
+
+    .theme-dark ::-webkit-scrollbar-thumb {
+        background: #334155;
+    }
+
+        .theme-dark ::-webkit-scrollbar-thumb:hover {
+            background: #0f766e;
+        }
+
+    /* ============================================ */
+    /* FIX DARK MODE - SIDEBAR COLLAPSE MENU */
+    /* ============================================ */
+
+    /* Fix cho menu con trong sidebar khi dark mode */
+    .theme-dark .collapse-inner,
+    .theme-dark .bg-white.py-2.collapse-inner.rounded {
+        background-color: #1e293b !important;
+        border: 1px solid #334155 !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+    }
+
+    .theme-dark .collapse-item {
+        color: #cbd5e1 !important;
+        padding: 0.5rem 1rem !important;
+        transition: all var(--transition-fast) !important;
+    }
+
+        .theme-dark .collapse-item:hover {
+            background-color: #334155 !important;
+            color: #ffffff !important;
+            transform: translateX(4px);
+        }
+
+        .theme-dark .collapse-item:active,
+        .theme-dark .collapse-item.active {
+            background-color: rgba(13, 148, 136, 0.2) !important;
+            color: var(--primary-light) !important;
+        }
+
+    /* Fix cho text trong menu con */
+    .theme-dark .sidebar .collapse .nav-link,
+    .theme-dark .sidebar .collapse-item {
+        color: #94a3b8 !important;
+    }
+
+        .theme-dark .sidebar .collapse .nav-link:hover,
+        .theme-dark .sidebar .collapse-item:hover {
+            color: #ffffff !important;
+            background-color: rgba(255, 255, 255, 0.08) !important;
+        }
+
+    /* Fix background của collapse menu */
+    .theme-dark .collapse.show {
+        background-color: transparent !important;
+    }
+
+    .theme-dark .collapse-inner {
+        background-color: #0f172a !important;
+        border-radius: var(--radius-md) !important;
+        margin-top: 0.5rem !important;
+        padding: 0.5rem 0 !important;
+    }
+
+    /* Fix cho các icon trong menu con */
+    .theme-dark .collapse-item i {
+        color: #64748b !important;
+        margin-right: 0.5rem;
+    }
+
+    .theme-dark .collapse-item:hover i {
+        color: var(--primary-light) !important;
+    }
+
+    /* ============================================ */
+    /* TĂNG ĐỘ TƯƠNG PHẢN CHO DARK MODE */
+    /* ============================================ */
+
+    /* Đảm bảo chữ trắng hơn trên nền tối */
+    .theme-dark,
+    .theme-dark body,
+    .theme-dark .sidebar,
+    .theme-dark .card,
+    .theme-dark .modal-content {
+        color-scheme: dark;
+    }
+
+        /* Text màu sáng hơn */
+        .theme-dark .text-gray-600,
+        .theme-dark .text-gray-700,
+        .theme-dark .text-gray-800,
+        .theme-dark .text-dark {
+            color: #e2e8f0 !important;
+        }
+
+        /* Sidebar text sáng hơn */
+        .theme-dark .sidebar .nav-link span,
+        .theme-dark .sidebar .sidebar-heading {
+            color: #e2e8f0 !important;
+        }
+
+        /* Menu collapse text */
+        .theme-dark .collapse-item {
+            color: #cbd5e1 !important;
+            font-weight: 500 !important;
+        }
+
+            /* Đảm bảo hover rõ ràng */
+            .theme-dark .collapse-item:hover {
+                background-color: #334155 !important;
+                color: white !important;
+            }
+
+        /* Fix cho nút toggle sidebar */
+        .theme-dark #sidebarToggle,
+        .theme-dark #sidebarToggleTop {
+            background-color: transparent !important;
+            color: #94a3b8 !important;
+        }
+
+            .theme-dark #sidebarToggle:hover,
+            .theme-dark #sidebarToggleTop:hover {
+                color: white !important;
+            }
+

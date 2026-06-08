@@ -1,0 +1,209 @@
+﻿@{
+    ViewData["Title"] = "Quản lý kho hàng";
+}
+
+<style>
+    .rounded-25 {
+        border-radius: 25px !important;
+    }
+</style>
+
+<div class="container-fluid mt-4 fade-in">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800 font-weight-bold">
+            <span class="material-symbols-rounded text-success align-middle" style="font-size: 2.5rem;">inventory_2</span>
+            Kho hàng & Lô hàng
+        </h1>
+
+        <div class="d-flex gap-2 align-items-center">
+            <div class="input-group input-group-sm" style="width: 300px;">
+                <span class="input-group-text bg-white border-end-0 rounded-start-pill ps-3">
+                    <span class="material-symbols-rounded text-muted" style="font-size: 1.1rem;">search</span>
+                </span>
+                <input type="text" id="searchBatch" class="form-control border-start-0 rounded-end-pill" placeholder="Tìm mã lô, tên thuốc...">
+            </div>
+
+            <a href="/phieu-nhap-hang/thong-tin?mode=Create" class="btn btn-success shadow-sm rounded-pill px-4 border-0 mx-1 font-weight-bold"
+               style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                <span class="material-symbols-rounded align-middle me-1">add_circle</span> Lập phiếu nhập mới
+            </a>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-0 border-left-success shadow-sm h-100 py-2 rounded-25">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center text-success">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-uppercase mb-1">Tổng tồn kho</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@ViewBag.TotalStock đv</div>
+                        </div>
+                        <div class="col-auto"><span class="material-symbols-rounded" style="font-size: 2.2rem;">package_2</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-0 border-left-danger shadow-sm h-100 py-2 rounded-25">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center text-danger">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-uppercase mb-1">Lô đã hết hạn</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@ViewBag.ExpiredCount Lô</div>
+                        </div>
+                        <div class="col-auto"><span class="material-symbols-rounded" style="font-size: 2.2rem;">history_toggle_off</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-0 border-left-warning shadow-sm h-100 py-2 rounded-25">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center text-warning">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-uppercase mb-1">Cảnh báo tồn kho thấp</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@ViewBag.LowStockCount Loại</div>
+                        </div>
+                        <div class="col-auto"><span class="material-symbols-rounded" style="font-size: 2.2rem;">priority_high</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm mb-4 border-0 rounded-25 overflow-hidden">
+        <div class="card-body p-0 d-flex flex-column">
+            <div class="table-responsive flex-grow-1">
+                <table class="table table-hover align-middle mb-0" id="batchTable">
+                    <thead class="text-muted small text-uppercase font-weight-bold">
+                        <tr>
+                            <th class="ps-4 py-3">Mã Lô</th>
+                            <th>Tên thuốc</th>
+                            <th>Hạn dùng</th>
+                            <th>Tồn kho</th>
+                            <th>Tình trạng</th>
+                            <th class="text-center pe-4" style="width: 120px;">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="batchTableBody">
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="p-4 border-top bg-white mt-auto">
+                <div class="d-sm-flex justify-content-between align-items-center">
+                    <div class="small text-muted mb-3 mb-sm-0">
+                        Hiển thị <span id="showingStart" class="font-weight-bold text-dark">0</span> - <span id="showingEnd" class="font-weight-bold text-dark">0</span> của <span id="totalRecords" class="font-weight-bold text-dark">0</span> lô
+                    </div>
+                    <nav>
+                        <ul class="pagination pagination-sm mb-0 shadow-sm rounded-pill" id="pagination"></ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/site-pagination.js"></script>
+
+    <script>
+        let allBatches = @Html.Raw(ViewBag.BatchesJson ?? "[]");
+        const rowsPerPage = 10;
+        let currentPage = 1;
+        let searchQuery = ""; 
+
+        document.addEventListener("DOMContentLoaded", () => {
+            renderTable();
+
+            const searchInput = document.getElementById('searchBatch');
+            if (searchInput) {
+                searchInput.addEventListener('input', (e) => {
+                    searchQuery = e.target.value.toLowerCase();
+                    currentPage = 1;
+                    renderTable();
+                });
+            }
+        });
+
+        function getStatusBadge(status) {
+            let badgeClass = 'bg-success text-white';
+            let icon = 'check_circle';
+
+            if (status === 'Hết hạn') {
+                badgeClass = 'bg-danger text-white';
+                icon = 'cancel';
+            } else if (status === 'Sắp hết hạn') {
+                badgeClass = 'bg-warning text-dark';
+                icon = 'error';
+            }
+
+            return `<span class="badge ${badgeClass} rounded-pill px-3 py-2 font-weight-bold shadow-sm d-inline-flex align-items-center" style="font-size: 0.75rem;">
+                        <span class="material-symbols-rounded align-middle" style="font-size: 1.1rem; margin-right: 4px;">${icon}</span>
+                        ${status}
+                    </span>`;
+        }
+
+        function batchRowTemplate(item, index) {
+            return `
+                <tr>
+                    <td class="ps-4 align-middle"><b class="text-primary">${item.maLo}</b></td>
+                    <td class="font-weight-bold text-dark align-middle">${item.tenThuoc}</td>
+                    <td class="text-secondary align-middle">${item.hanSuDung}</td>
+                    <td class="align-middle">
+                        <span class="fw-bold ${item.slTon < 10 ? 'text-danger' : 'text-dark'}">${item.slTon}</span>
+                        <small class="text-muted font-italic">đv</small>
+                    </td>
+                    <td class="align-middle">${getStatusBadge(item.tinhTrang)}</td>
+
+                    <!-- CỘT THAO TÁC SẠCH SẼ -->
+                    <td class="text-center pe-4 align-middle">
+                        <div class="d-flex justify-content-center align-items-center">
+                            <button class="btn btn-sm btn-light text-danger rounded shadow-sm mx-1"
+                                    title="Xóa lô hàng" onclick="deleteBatch('${item.maLo}')">
+                                <span class="material-symbols-rounded align-middle" style="font-size: 1.2rem;">delete_forever</span>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }
+
+        function renderTable() {
+            const filteredData = allBatches.filter(b =>
+                b.maLo.toLowerCase().includes(searchQuery) ||
+                b.tenThuoc.toLowerCase().includes(searchQuery)
+            );
+
+            commonPagination(
+                filteredData,
+                currentPage,
+                rowsPerPage,
+                'batchTableBody',
+                'pagination',
+                batchRowTemplate,
+                'changePage'
+            );
+        }
+
+        function changePage(p) {
+            currentPage = p;
+            renderTable();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function deleteBatch(id) {
+            if(confirm('Cảnh báo: Xóa lô hàng #' + id + ' sẽ làm mất sạch tồn kho của thuốc này. Hùng chắc chắn muốn xóa?')) {
+                $.post('/Batches/Delete', { id: id }, function(res) {
+                    if(res.success) {
+                        allBatches = allBatches.filter(b => b.maLo !== id);
+                        renderTable();
+                    } else {
+                        alert('Lỗi: Không thể xóa lô hàng này!');
+                    }
+                });
+            }
+        }
+    </script>
+}

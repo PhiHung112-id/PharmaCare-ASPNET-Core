@@ -1,0 +1,269 @@
+﻿@{
+    ViewData["Title"] = "Bán hàng POS";
+}
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<style>
+    .table-responsive::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .table-responsive::-webkit-scrollbar-thumb {
+        background: #10b981;
+        border-radius: 10px;
+    }
+
+    @@keyframes flash-green {
+        0% {
+            background-color: #dcfce7;
+        }
+
+        100% {
+            background-color: transparent;
+        }
+    }
+
+    .flash-item {
+        animation: flash-green 0.8s ease-out;
+    }
+
+    #searchResult {
+        position: absolute;
+        z-index: 1050;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        background: white;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+        border-radius: 12px;
+        display: none;
+        max-height: 300px;
+        overflow-y: auto;
+        border: 1px solid #e3e6f0;
+    }
+
+    .search-item {
+        padding: 12px 20px;
+        border-bottom: 1px solid #f8f9fc;
+        cursor: pointer;
+    }
+
+        .search-item:hover {
+            background-color: #f0fdf4;
+        }
+
+    .qty-control {
+        display: inline-flex;
+        background: #f8f9fc;
+        border-radius: 20px;
+        border: 1px solid #e3e6f0;
+    }
+
+    .qty-btn {
+        border: none;
+        background: white;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        font-weight: bold;
+    }
+
+        .qty-btn:hover {
+            background: #10b981;
+            color: white;
+        }
+
+    .bg-emerald {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    }
+
+    .rounded-25 {
+        border-radius: 25px !important;
+    }
+</style>
+
+<div class="container-fluid mt-3 d-flex flex-column" style="height: calc(100vh - 100px);">
+    <div class="d-flex align-items-center justify-content-between mb-3 flex-shrink-0">
+        <h1 class="h3 mb-0 text-gray-800 font-weight-bold">Bán hàng (POS)</h1>
+        <button class="btn btn-light shadow-sm rounded-pill px-4 border" onclick="window.location.href='/hoa-don/lich-su'">
+            <span class="material-symbols-rounded align-middle text-success">history</span> Lịch sử hóa đơn
+        </button>
+    </div>
+
+    <div class="row flex-grow-1" style="min-height: 0;">
+        <div class="col-lg-8 d-flex flex-column h-100">
+            <div class="card shadow-sm border-0 mb-4 rounded-25">
+                <div class="card-body p-3 d-flex align-items-center position-relative">
+                    <input type="text" class="form-control border-0 bg-light rounded-pill px-4 py-4" id="drugSearch" placeholder="Tìm tên thuốc hoặc mã lô... (F2)" autocomplete="off">
+                    <button class="btn btn-success shadow-sm ml-3 px-4 rounded-pill font-weight-bold bg-emerald border-0" style="height: 55px; white-space:nowrap" data-bs-toggle="modal" data-bs-target="#modalManual">
+                        <span class="material-symbols-rounded align-middle">add_circle</span> Thêm thuốc
+                    </button>
+                    <div id="searchResult"></div>
+                </div>
+            </div>
+
+            <div class="card shadow-sm border-0 flex-grow-1 rounded-25 overflow-hidden d-flex flex-column">
+                <div class="table-responsive flex-grow-1">
+                    <table class="table align-middle mb-0">
+                        <thead class="sticky-top">
+                            <tr class="small text-uppercase font-weight-bold text-muted">
+                                <th class="ps-4">Sản phẩm</th>
+                                <th>Đơn giá</th>
+                                <th class="text-center">Số lượng</th>
+                                <th class="text-right">Thành tiền</th>
+                                <th class="pe-4 text-center">Xóa</th>
+                            </tr>
+                        </thead>
+                        <tbody id="cartItems"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4 d-flex flex-column h-100">
+            <div class="card shadow-sm border-0 h-100 rounded-25 p-4 d-flex flex-column">
+                <h5 class="font-weight-bold mb-4 text-success border-bottom pb-2">Thanh toán</h5>
+                <div class="mb-4">
+                    <label class="small font-weight-bold text-muted">KHÁCH HÀNG</label>
+                    <select class="form-select bg-light border-0 font-weight-bold" id="customerSelect">
+                        <option value="retail">Khách lẻ (Vãng lai)</option>
+                        @foreach (var c in ViewBag.Customers)
+                        {
+                            <option value="@c.MaKh">@c.HoTen</option>
+                        }
+                    </select>
+                </div>
+                <div class="flex-grow-1">
+                    <div class="d-flex justify-content-between mb-2"><span>Tạm tính:</span><b id="subtotal">0đ</b></div>
+                    <div class="d-flex justify-content-between mb-2"><span>VAT (10%):</span><b id="taxAmount">0đ</b></div>
+                    <div class="d-flex justify-content-between h3 font-weight-bold text-success pt-3 border-top mt-3"><span>TỔNG:</span><span id="totalAmount">0đ</span></div>
+                </div>
+                <div class="mt-4">
+                    <input type="number" class="form-control form-control-lg text-right font-weight-bold mb-3 border-success shadow-sm" id="customerCash" oninput="calculateChange()" placeholder="Tiền khách đưa...">
+                    <div class="p-3 rounded-25 bg-light d-flex justify-content-between align-items-center mb-4 border"><span>TIỀN THỪA:</span><b class="h4 font-weight-bold text-danger mb-0" id="changeAmount">0đ</b></div>
+                    <button class="btn btn-success w-100 py-3 rounded-pill font-weight-bold bg-emerald shadow border-0" onclick="doCheckout()">XÁC NHẬN (F9)</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Thêm thuốc  -->
+<div class="modal fade" id="modalManual" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-25 shadow">
+            <div class="modal-header bg-emerald text-white border-0"><h5 class="modal-title font-weight-bold">Thêm thuốc vào hóa đơn</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body p-4">
+                <div class="mb-3"><label class="small font-weight-bold">Chọn thuốc</label><select id="mID" class="form-control" style="width: 100%"></select></div>
+                <div class="row">
+                    <div class="col-6 mb-3"><label class="small font-weight-bold">Mã Lô</label><input type="text" id="mBatch" class="form-control font-weight-bold" readonly></div>
+                    <div class="col-6 mb-3"><label class="small font-weight-bold">Đơn vị</label><input type="text" id="mUnit" class="form-control bg-light" readonly></div>
+                </div>
+                <div class="row">
+                    <div class="col-6 mb-3"><label class="small font-weight-bold">Giá bán</label><input type="number" id="mPrice" class="form-control font-weight-bold" readonly></div>
+                    <div class="col-6 mb-3"><label class="small font-weight-bold">Số lượng bán</label><input type="number" id="mQty" class="form-control font-weight-bold" value="1"></div>
+                </div>
+            </div>
+            <div class="modal-footer border-0"><button class="btn btn-success rounded-pill px-5 bg-emerald border-0 w-100 py-3 font-weight-bold" onclick="addManualItem()">ĐẨY XUỐNG BẢNG</button></div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script>
+        let cart = [];
+        $(document).ready(function() {
+            $.get('/POS/GetAllDrugs', function(data) {
+                $('#mID').select2({ data: data, dropdownParent: $('#modalManual'), placeholder: "Tìm tên thuốc..." });
+            });
+            $('#mID').on('select2:select', function(e) {
+                let d = e.params.data; $('#mPrice').val(d.price); $('#mUnit').val(d.unit);
+                $.get('/POS/GetAutoBatch', { maThuoc: d.id }, function(res) { if(res) { $('#mBatch').val(res.maLo); $('#mQty').attr('max', res.stock).focus().select(); } });
+            });
+        });
+
+        $('#drugSearch').on('input', function() {
+            let t = $(this).val(); if(t.length < 1) { $('#searchResult').hide(); return; }
+            $.get('/POS/SearchDrugs', { term: t }, function(data) {
+                let html = data.map(i => `<div class="search-item" onclick='handleSelect(${JSON.stringify(i)})'><b>${i.name}</b> - <span class="text-success">${i.price.toLocaleString()}đ</span><br><small class="text-muted">Lô: ${i.batch} | Tồn: ${i.stock} ${i.unit}</small></div>`).join('');
+                $('#searchResult').html(html).show();
+            });
+        });
+
+        function handleSelect(i) { addToCart(i); $('#drugSearch').val('').focus(); $('#searchResult').hide(); }
+        function addManualItem() {
+            let data = $('#mID').select2('data')[0]; let batch = $('#mBatch').val();
+            if(!data.id || !batch) return alert("Vui lòng chọn thuốc!");
+
+            let stock = parseInt($('#mQty').attr('max')) || 0;
+
+            addToCart({ id: batch, maThuoc: data.id, name: data.text, price: parseFloat($('#mPrice').val()), unit: $('#mUnit').val(), batch: batch, stock: stock });
+            $('#modalManual').modal('hide');
+        }
+
+        function addToCart(item) {
+            let qty = parseInt($('#mQty').val()) || 1;
+            let exist = cart.find(i => i.id === item.id && i.maThuoc === item.maThuoc);
+
+            let newQty = exist ? exist.qty + qty : qty;
+            if (newQty > item.stock) {
+                alert(`⚠️ Không đủ hàng! Thuốc này chỉ còn tồn ${item.stock} ${item.unit}.`);
+                return; 
+            }
+
+            if (exist) { exist.qty += qty; exist.isNew = true; }
+            else { cart.unshift({ ...item, qty: qty, isNew: true }); }
+            renderCart(); $('#mQty').val(1);
+            setTimeout(() => { cart.forEach(i => i.isNew = false); renderCart(); }, 800);
+        }
+
+        function renderCart() {
+            let sub = 0;
+            let html = cart.map(i => {
+                sub += i.price * i.qty;
+                return `<tr class="${i.isNew ? 'flash-item' : ''}"><td class="ps-4"><b>${i.name}</b><br><small>Lô: ${i.batch}</small></td><td>${i.price.toLocaleString()}đ</td><td class="text-center"><div class="qty-control"><button class="qty-btn" onclick="updateQty('${i.id}','${i.maThuoc}',-1)">-</button><span class="mx-3 fw-bold">${i.qty}</span><button class="qty-btn" onclick="updateQty('${i.id}','${i.maThuoc}',1)">+</button></div></td><td class="text-end font-weight-bold text-success">${(i.price * i.qty).toLocaleString()}đ</td><td class="text-center"><button class="btn btn-sm text-danger" onclick="remove('${i.id}','${i.maThuoc}')">×</button></td></tr>`;
+            }).join('');
+            $('#cartItems').html(html || '<tr><td colspan="5" class="text-center py-5 text-muted">Chưa có thuốc nào...</td></tr>');
+            $('#subtotal').text(sub.toLocaleString() + 'đ'); $('#taxAmount').text((sub*0.1).toLocaleString() + 'đ'); $('#totalAmount').text((sub*1.1).toLocaleString() + 'đ');
+            calculateChange();
+        }
+
+        function updateQty(id, mt, d) {
+            let i = cart.find(x => x.id === id && x.maThuoc === mt);
+            if(i) {
+                if (i.qty + d > i.stock) {
+                    alert(`⚠️ Kho chỉ còn ${i.stock} ${i.unit}. Không thể tăng số lượng thêm!`);
+                    return; 
+                }
+
+                i.qty += d;
+                if(i.qty < 1) remove(id, mt);
+                renderCart();
+            }
+        }
+
+        function remove(id, mt) { cart = cart.filter(x => !(x.id === id && x.maThuoc === mt)); renderCart(); }
+        function calculateChange() { let t = parseInt($('#totalAmount').text().replace(/[^0-9]/g, '')) || 0; let c = parseInt($('#customerCash').val()) || 0; $('#changeAmount').text((c - t > 0 ? c - t : 0).toLocaleString() + 'đ'); }
+
+        function doCheckout() {
+            if(cart.length === 0) return;
+            $.ajax({
+                url: '/POS/Checkout', type: 'POST', contentType: 'application/json',
+                data: JSON.stringify({ MaKh: $('#customerSelect').val(), Total: parseInt($('#totalAmount').text().replace(/[^0-9]/g, '')), Vat: parseInt($('#taxAmount').text().replace(/[^0-9]/g, '')), CustomerCash: parseInt($('#customerCash').val()) || 0, Change: parseInt($('#changeAmount').text().replace(/[^0-9]/g, '')), Items: cart.map(i => ({ BatchId: i.id, MaThuoc: i.maThuoc, Qty: i.qty, Price: i.price })) }),
+                success: function(res) {
+                    if(res.success) {
+                        alert("Thành công! Mã HĐ: " + res.msg);
+                        cart = []; renderCart(); $('#customerCash').val('');
+                    }
+                    else {
+                        alert("⚠️ LỖI: " + res.msg);
+                    }
+                },
+                error: function() {
+                    alert("⚠️ Có lỗi xảy ra trong quá trình xử lý!");
+                }
+            });
+        }
+        $(document).keydown(function(e) { if (e.which == 113) $('#drugSearch').focus(); if (e.which == 120) doCheckout(); });
+    </script>
+}

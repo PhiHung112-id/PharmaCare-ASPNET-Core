@@ -1,0 +1,14 @@
+﻿<div class="container-fluid text-center">
+    <div class="card shadow mb-4 border-bottom-danger" style="max-width: 500px; margin: auto;">
+        <div class="card-body py-5">
+            <i class="fas fa-exclamation-triangle fa-3x text-danger mb-3"></i>
+            <h3 class="text-gray-800">Xác nhận xóa?</h3>
+            <p>Bạn có chắc chắn muốn xóa thuốc <strong>Paracetamol</strong> không? Hành động này không thể hoàn tác.</p>
+            <form action="/Drugs/Delete" method="post">
+                <input type="hidden" name="id" value="1" />
+                <button type="submit" class="btn btn-danger btn-lg">Xóa ngay</button>
+                <a href="/Drugs" class="btn btn-secondary btn-lg">Hủy</a>
+            </form>
+        </div>
+    </div>
+</div>

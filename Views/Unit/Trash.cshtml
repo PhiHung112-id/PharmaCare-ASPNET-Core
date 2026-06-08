@@ -1,0 +1,71 @@
+﻿@model IEnumerable<PharmaCare.Models.Unit>
+@{
+    ViewData["Title"] = "Thùng rác Đơn vị tính";
+}
+
+<div class="container-fluid fade-in mt-4">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800 text-danger font-weight-bold">
+            <span class="material-symbols-rounded align-middle" style="font-size: 2rem;">delete_sweep</span> Thùng rác Đơn vị tính
+        </h1>
+        <a href="/don-vi-tinh" class="btn btn-secondary btn-sm shadow-sm rounded-pill px-3">
+            <i class="fas fa-arrow-left fa-sm"></i> Quay lại danh sách
+        </a>
+    </div>
+
+    <div class="card shadow mb-4 border-left-danger rounded-25 border-0">
+        <div class="card-header py-3 bg-white border-0">
+            <h6 class="m-0 font-weight-bold text-danger">Các đơn vị tính đã tạm xóa</h6>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" width="100%">
+                    <thead class=" text-muted small text-uppercase">
+                        <tr>
+                            <th class="pl-4">Mã</th>
+                            <th>Tên đơn vị</th>
+                            <th>Ghi chú</th>
+                            <th class="text-center pr-4">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model == null || !Model.Any())
+                        {
+                            <tr><td colspan="4" class="text-center py-5 text-muted">Thùng rác hiện đang trống</td></tr>
+                        }
+                        else
+                        {
+                            foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td class="pl-4 text-muted small font-weight-bold">@item.Id</td>
+                                    <td>
+                                        <strong class="text-dark">@item.Name</strong>
+                                        <div class="small text-muted">@item.ShortName</div>
+                                    </td>
+                                    <td class="text-muted small">@item.Description</td>
+                                    <td class="text-center pr-4">
+                                        <!-- Form Khôi phục -->
+                                        <form action="/Units/Restore" method="post" class="d-inline">
+                                            <input type="hidden" name="Id" value="@item.Id" />
+                                            <button type="submit" class="btn btn-success btn-sm rounded-pill px-3 shadow-sm me-1" title="Khôi phục">
+                                                <i class="fas fa-undo"></i> Khôi phục
+                                            </button>
+                                        </form>
+                                        <!-- Form Xóa vĩnh viễn -->
+                                        <form action="/Units/HardDelete" method="post" class="d-inline" onsubmit="return confirm('CẢNH BÁO: Xóa vĩnh viễn không thể khôi phục. Tiếp tục?');">
+                                            <input type="hidden" name="Id" value="@item.Id" />
+                                            <button type="submit" class="btn btn-danger btn-sm rounded-pill px-3 shadow-sm" title="Xóa vĩnh viễn">
+                                                <i class="fas fa-times"></i> Xóa vĩnh viễn
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

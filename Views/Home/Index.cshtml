@@ -1,0 +1,383 @@
+﻿@model PharmaCare.Models.HomeViewModel
+@{
+    ViewData["Title"] = "Bảng điều khiển";
+    var userName = User.Identity?.IsAuthenticated == true ? User.Identity.Name : "Khách";
+}
+
+<div class="container-fluid fade-in">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4 mt-3">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800 font-weight-bold">Bảng điều khiển</h1>
+            <p class="text-muted small mb-0">Chào mừng trở lại, <strong class="text-primary">@userName</strong>! Hôm nay là @DateTime.Now.ToString("dd/MM/yyyy")</p>
+        </div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-info shadow-sm px-4 rounded-pill me-2" onclick="exportDashboardData()">
+                <span class="material-symbols-rounded" style="vertical-align: middle;">download</span> Xuất báo cáo
+            </button>
+            <button class="btn btn-primary shadow-sm px-4 rounded-pill mx-1" onclick="window.location.href='/ban-hang'" style="background: linear-gradient(135deg, #312e81 0%, #4338ca 100%); border: none;">
+                <span class="material-symbols-rounded" style="vertical-align: middle;">point_of_sale</span> BÁN HÀNG NGAY
+            </button>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-0 shadow-sm h-100 py-2" style="background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%); border-radius: 15px;">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-white-50 text-uppercase mb-1">Doanh thu hôm nay</div>
+                            <div class="h4 mb-0 font-weight-bold text-white" id="todayRevenue">@Model.TodayRevenue.ToString("N0")đ</div>
+                        </div>
+                        <div class="col-auto">
+                            <span class="material-symbols-rounded text-white" style="font-size: 2.5rem; opacity: 0.5;">account_balance_wallet</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-0 shadow-sm h-100 py-2" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 15px;">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-white-50 text-uppercase mb-1">Đơn hàng mới</div>
+                            <div class="h4 mb-0 font-weight-bold text-white" id="newOrders">@Model.TodayOrders đơn</div>
+                        </div>
+                        <div class="col-auto">
+                            <span class="material-symbols-rounded text-white" style="font-size: 2.5rem; opacity: 0.5;">shopping_cart</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-0 shadow-sm h-100 py-2" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border-radius: 15px;">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-white-50 text-uppercase mb-1">Sắp hết hàng</div>
+                            <div class="h4 mb-0 font-weight-bold text-white" id="lowStockItems">@Model.LowStockItems loại</div>
+                        </div>
+                        <div class="col-auto">
+                            <span class="material-symbols-rounded text-white" style="font-size: 2.5rem; opacity: 0.5;">warning</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-0 shadow-sm h-100 py-2" style="background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); border-radius: 15px;">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-white-50 text-uppercase mb-1">Lô hàng hết hạn</div>
+                            <div class="h4 mb-0 font-weight-bold text-white" id="expiredBatches">@Model.ExpiredBatches lô</div>
+                        </div>
+                        <div class="col-auto">
+                            <span class="material-symbols-rounded text-white" style="font-size: 2.5rem; opacity: 0.5;">emergency</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row equal-header">
+        <div class="col-xl-6 col-lg-6 mb-4">
+            <div class="card shadow mb-4 border-0 rounded-25">
+                <div class="card-header bg-white py-3 d-flex flex-row align-items-center justify-content-between border-0" style="border-radius: 25px 25px 0 0;">
+                    <h6 class="m-0 font-weight-bold text-primary">XU HƯỚNG DOANH THU (7 NGÀY)</h6>
+                </div>
+                <div class="card-body">
+                    <div class="chart-area" style="height: 320px;">
+                        <canvas id="revenueChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-6 col-lg-6 mb-4">
+            <div class="card shadow mb-4 border-0 rounded-25">
+                <div class="card-header bg-white py-3 border-0" style="border-radius: 25px 25px 0 0;">
+                    <h6 class="m-0 font-weight-bold text-primary">TOP SẢN PHẨM BÁN CHẠY</h6>
+                </div>
+                <div class="card-body">
+                    <div class="chart-area" style="height: 320px;">
+                        <canvas id="topProductsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-xl-4 col-lg-5 mb-4">
+            <div class="card shadow mb-4 border-0 rounded-25">
+                <div class="card-header bg-white py-3 border-0" style="border-radius: 25px 25px 0 0;">
+                    <h6 class="m-0 font-weight-bold text-primary">CƠ CẤU DANH MỤC THUỐC</h6>
+                </div>
+                <div class="card-body">
+                    <div class="chart-area" style="height: 250px;">
+                        <canvas id="categoryChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-4 col-lg-5 mb-4">
+            <div class="card shadow mb-4 border-0 rounded-25">
+                <div class="card-header bg-white py-3 border-0" style="border-radius: 25px 25px 0 0;">
+                    <h6 class="m-0 font-weight-bold text-primary">THAO TÁC NHANH</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row no-gutters">
+                        <div class="col-6 p-1">
+                            <a asp-route="PurchaseOrderPage" class="btn btn-light-custom w-100 py-4 d-flex flex-column align-items-center rounded-3">
+                                <span class="material-symbols-rounded text-success mb-2" style="font-size: 2rem;">add_shopping_cart</span>
+                                <span class="small font-weight-bold text-dark">Nhập hàng</span>
+                            </a>
+                        </div>
+                        <div class="col-6 p-1">
+                            <a asp-route="DrugPage" class="btn btn-light-custom w-100 py-4 d-flex flex-column align-items-center rounded-3">
+                                <span class="material-symbols-rounded text-info mb-2" style="font-size: 2rem;">medication</span>
+                                <span class="small font-weight-bold text-dark">Thêm thuốc</span>
+                            </a>
+                        </div>
+                        <div class="col-6 p-1">
+                            <a asp-route="SupplierPage" class="btn btn-light-custom w-100 py-4 d-flex flex-column align-items-center rounded-3">
+                                <span class="material-symbols-rounded text-warning mb-2" style="font-size: 2rem;">local_shipping</span>
+                                <span class="small font-weight-bold text-dark">Đối tác</span>
+                            </a>
+                        </div>
+                        <div class="col-6 p-1">
+                            <a asp-route="ReportPage" class="btn btn-light-custom w-100 py-4 d-flex flex-column align-items-center rounded-3">
+                                <span class="material-symbols-rounded text-danger mb-2" style="font-size: 2rem;">query_stats</span>
+                                <span class="small font-weight-bold text-dark">Báo cáo</span>
+                            </a>
+                        </div>
+                        <div class="col-6 p-1">
+                            <a asp-route="BatchePage" class="btn btn-light-custom w-100 py-4 d-flex flex-column align-items-center rounded-3">
+                                <span class="material-symbols-rounded text-primary mb-2" style="font-size: 2rem;">inventory</span>
+                                <span class="small font-weight-bold text-dark">Kho hàng</span>
+                            </a>
+                        </div>
+                        <div class="col-6 p-1">
+                            <a asp-route="CustomerPage" class="btn btn-light-custom w-100 py-4 d-flex flex-column align-items-center rounded-3">
+                                <span class="material-symbols-rounded text-secondary mb-2" style="font-size: 2rem;">groups</span>
+                                <span class="small font-weight-bold text-dark">Khách hàng</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-4 col-lg-5 mb-4">
+            <div class="card shadow mb-4 border-0 rounded-25">
+                <div class="card-header bg-white py-3 border-0" style="border-radius: 25px 25px 0 0;">
+                    <h6 class="m-0 font-weight-bold text-primary">THÔNG BÁO HỆ THỐNG</h6>
+                </div>
+                <div class="card-body" style="max-height: 300px; overflow-y: auto;">
+                    <div id="notificationList">
+                        @if (Model.LowStockItems > 0)
+                        {
+                            <div class="alert alert-warning alert-dismissible fade show rounded-3" role="alert">
+                                <strong><span class="material-symbols-rounded align-middle" style="font-size: 1.1rem;">warning</span> Cảnh báo:</strong> Có @Model.LowStockItems loại thuốc sắp hết hàng!
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        }
+                        <div class="alert alert-success alert-dismissible fade show rounded-3" role="alert">
+                            <strong><span class="material-symbols-rounded align-middle" style="font-size: 1.1rem;">check_circle</span> Hệ thống:</strong> Đã đồng bộ dữ liệu lúc @DateTime.Now.ToString("HH:mm")
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow mb-4 border-0 rounded-25 overflow-hidden">
+        <div class="card-header bg-white py-3 border-0 d-sm-flex align-items-center justify-content-between flex-wrap gap-3">
+            <h6 class="m-0 fw-bold text-primary text-uppercase d-flex align-items-center">
+                <span class="material-symbols-rounded me-2" style="font-size: 1.5rem;">history_edu</span>
+                Hóa đơn vừa lập
+            </h6>
+            <div class="search-box-wrapper" style="width: 280px;">
+                <div class="input-group input-group-sm rounded-pill px-2 border-0 shadow-none">
+                    <span class="input-group-text bg-transparent border-0 ps-2">
+                        <span class="material-symbols-rounded text-muted" style="font-size: 1.2rem;">search</span>
+                    </span>
+                    <input type="text" id="searchInvoice" class="form-control border-0 bg-transparent shadow-none px-2 py-2"
+                           placeholder="Tìm mã HD..." style="font-size: 0.85rem; box-shadow: none;">
+                </div>
+            </div>
+        </div>
+
+        <div class="card-body p-0 d-flex flex-column">
+            <div class="table-responsive flex-grow-1">
+                <table class="table table-hover align-middle mb-0" id="recentSalesTable">
+                    <thead>
+                        <tr class="small text-muted font-weight-bold text-uppercase border-bottom-0">
+                            <th class="ps-4 py-3 border-0">SỐ HD</th>
+                            <th class="border-0">THỜI GIAN</th>
+                            <th class="border-0">KHÁCH HÀNG</th>
+                            <th class="border-0">TỔNG TIỀN</th>
+                            <th class="border-0">TRẠNG THÁI</th>
+                            <th class="text-center pe-4 border-0">THAO TÁC</th>
+                        </tr>
+                    </thead>
+                    <tbody id="salesTableBody">
+                        @if (Model.RecentInvoices.Any())
+                        {
+                            foreach (var item in Model.RecentInvoices)
+                            {
+                                <tr>
+                                    <td class="ps-4"><b class="text-info">@item.MaHd</b></td>
+                                    <td class="small text-secondary">@(item.NgayLap?.ToString("dd/MM/yyyy HH:mm"))</td>
+                                    <td class="font-weight-bold text-dark">@(item.MaKhNavigation?.HoTen ?? "Khách lẻ")</td>
+                                    <td><b class="text-primary">@(item.TongTien?.ToString("N0") ?? "0")đ</b></td>
+                                    <td><span class="badge rounded-pill px-3 py-2" style="background-color: #d1fae5; color: #059669;">Hoàn thành</span></td>
+
+                                    <td class="text-center pe-4">
+                                        <button class="btn btn-sm btn-light text-info rounded-circle me-1 d-inline-flex align-items-center justify-content-center" onclick="viewInvoice('@item.MaHd')" title="Xem chi tiết" style="width: 32px; height: 32px; padding: 0;">
+                                            <span class="material-symbols-rounded" style="font-size: 1.2rem;">visibility</span>
+                                        </button>
+                                        <button class="btn btn-sm btn-light text-primary rounded-circle d-inline-flex align-items-center justify-content-center" onclick="printInvoice('@item.MaHd')" title="In hóa đơn" style="width: 32px; height: 32px; padding: 0;">
+                                            <span class="material-symbols-rounded" style="font-size: 1.2rem;">print</span>
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="6" class="text-center py-4 text-muted">Chưa có hóa đơn nào được lập.</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <div class="p-4 border-top mt-auto bg-white text-center">
+                <a asp-route="InvoicePage" class="btn btn-outline-primary btn-sm rounded-pill px-4">Xem toàn bộ lịch sử bán hàng</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const revLabels = @Html.Raw(Json.Serialize(Model.RevenueLabels));
+        const revValues = @Html.Raw(Json.Serialize(Model.RevenueValues));
+
+        const topProdLabels = @Html.Raw(Json.Serialize(Model.TopProductLabels));
+        const topProdValues = @Html.Raw(Json.Serialize(Model.TopProductValues));
+
+        const catLabels = @Html.Raw(Json.Serialize(Model.CategoryLabels));
+        const catValues = @Html.Raw(Json.Serialize(Model.CategoryValues));
+
+        document.addEventListener("DOMContentLoaded", function() {
+            initializeCharts();
+            setupEventListeners();
+        });
+
+        function initializeCharts() {
+            // BIỂU ĐỒ DOANH THU
+            new Chart(document.getElementById('revenueChart').getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: revLabels,
+                    datasets: [{
+                        label: 'Doanh thu (VNĐ)',
+                        data: revValues,
+                        borderColor: '#2563eb',
+                        backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 5,
+                        pointHoverRadius: 8,
+                        pointBackgroundColor: '#2563eb',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2
+                    }]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: '#e5e7eb' } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+
+            new Chart(document.getElementById('topProductsChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: topProdLabels,
+                    datasets: [{
+                        label: 'Lượt bán',
+                        data: topProdValues,
+                        backgroundColor: ['rgba(37, 99, 235, 0.8)', 'rgba(16, 185, 129, 0.8)', 'rgba(245, 158, 11, 0.8)', 'rgba(239, 68, 68, 0.8)', 'rgba(139, 92, 246, 0.8)'],
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+
+            new Chart(document.getElementById('categoryChart').getContext('2d'), {
+                type: 'doughnut',
+                data: {
+                    labels: catLabels,
+                    datasets: [{
+                        data: catValues,
+                        backgroundColor: ['#2563eb', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom' } }
+                }
+            });
+        }
+
+        function setupEventListeners() {
+            const searchInput = document.getElementById('searchInvoice');
+            if (searchInput) {
+                searchInput.addEventListener('keyup', function() {
+                    const searchTerm = this.value.toLowerCase();
+                    const rows = document.querySelectorAll('#salesTableBody tr');
+                    rows.forEach(row => {
+                        const text = row.textContent.toLowerCase();
+                        row.style.display = text.includes(searchTerm) ? '' : 'none';
+                    });
+                });
+            }
+        }
+
+        function viewInvoice(invoiceId) { showNotification(`Đang xem chi tiết hóa đơn ${invoiceId}`, 'info'); }
+        function printInvoice(invoiceId) { showNotification(`Đang in hóa đơn ${invoiceId}`, 'success'); window.print(); }
+        function exportDashboardData() { showNotification('Đã xuất báo cáo thành công', 'success'); }
+
+        function showNotification(message, type = 'info') {
+            const notificationDiv = document.createElement('div');
+            notificationDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed top-0 end-0 m-3 shadow`;
+            notificationDiv.style.zIndex = '9999';
+            notificationDiv.style.minWidth = '300px';
+            notificationDiv.innerHTML = `${message} <button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
+            document.body.appendChild(notificationDiv);
+            setTimeout(() => notificationDiv.remove(), 3000);
+        }
+    </script>
+}

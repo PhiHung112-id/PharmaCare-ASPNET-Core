@@ -1,0 +1,269 @@
+﻿/* ============================================ */
+/* SIDEBAR BRAND - HIỆU ỨNG VIẾT CHỮ TAY */
+/* ============================================ */
+
+.sidebar-brand {
+    position: relative;
+    margin: 15px 15px 25px 15px;
+    padding: 12px 15px !important;
+    border-radius: 16px;
+    background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 100%);
+    backdrop-filter: blur(10px);
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.34, 1.2, 0.64, 1);
+    cursor: pointer;
+}
+
+    /* Border sáng bao quanh */
+    .sidebar-brand::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        border-radius: 16px;
+        padding: 1px;
+        background: linear-gradient(135deg, rgba(255,255,255,0.3), rgba(255,255,255,0.05));
+        -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
+        pointer-events: none;
+    }
+
+    .sidebar-brand:hover {
+        transform: translateY(-2px);
+        background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.05) 100%);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+    }
+
+    /* ===== ICON - XOAY 3D + RUNG ===== */
+    .sidebar-brand .rotate-n-15 {
+        transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        display: inline-block;
+        font-size: 1.6rem;
+        filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.2));
+    }
+
+    .sidebar-brand:hover .rotate-n-15 {
+        transform: rotate(720deg) scale(1.2);
+        filter: drop-shadow(0 0 8px rgba(45, 212, 191, 0.6));
+    }
+
+/* Hiệu ứng rung nhẹ khi không hover */
+@keyframes gentleShake {
+    0%, 100% {
+        transform: rotate(0deg);
+    }
+
+    25% {
+        transform: rotate(3deg);
+    }
+
+    75% {
+        transform: rotate(-3deg);
+    }
+}
+
+.sidebar-brand .rotate-n-15 {
+    animation: gentleShake 3s ease-in-out infinite;
+}
+
+.sidebar-brand:hover .rotate-n-15 {
+    animation: none;
+}
+
+/* ===== CHỮ - HIỆU ỨNG VIẾT TAY (TYPEWRITER) ===== */
+.sidebar-brand-text {
+    font-size: 15px;
+    font-weight: 800;
+    background: linear-gradient(135deg, #ffffff 0%, #2dd4bf 30%, #0d9488 60%, #ffffff 100%);
+    background-size: 300% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent !important;
+    transition: all 0.4s ease;
+    position: relative;
+    letter-spacing: 0.5px;
+    display: inline-block;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+/* Hiệu ứng viết chữ từ từ */
+@keyframes typewriter {
+    0% {
+        width: 0;
+        opacity: 0;
+    }
+
+    10% {
+        opacity: 1;
+    }
+
+    100% {
+        width: 100%;
+        opacity: 1;
+    }
+}
+
+/* Hiệu ứng nhấp nháy con trỏ */
+@keyframes blinkCursor {
+    0%, 100% {
+        border-right-color: transparent;
+    }
+
+    50% {
+        border-right-color: rgba(45, 212, 191, 0.8);
+    }
+}
+
+.sidebar-brand-text {
+    animation: typewriter 1.5s steps(20, end) forwards;
+    border-right: 2px solid transparent;
+    white-space: nowrap;
+}
+
+.sidebar-brand:hover .sidebar-brand-text {
+    animation: gradientShift 1.5s ease infinite, typewriter 1.5s steps(20, end);
+    letter-spacing: 1.5px;
+    text-shadow: 0 0 15px rgba(45, 212, 191, 0.5);
+}
+
+@keyframes gradientShift {
+    0% {
+        background-position: 0% center;
+    }
+
+    50% {
+        background-position: 100% center;
+    }
+
+    100% {
+        background-position: 0% center;
+    }
+}
+
+/* ===== SUP 2.0 - HIỆU ỨNG XUẤT HIỆN MUỘN ===== */
+.sidebar-brand-text sup {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #fbbf24, #ef4444, #fbbf24);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    margin-left: 2px;
+    opacity: 0;
+    animation: supAppear 0.5s ease 1.3s forwards;
+}
+
+@keyframes supAppear {
+    0% {
+        opacity: 0;
+        transform: scale(0) rotate(-180deg);
+    }
+
+    100% {
+        opacity: 1;
+        transform: scale(1) rotate(0deg);
+    }
+}
+
+.sidebar-brand:hover .sidebar-brand-text sup {
+    animation: supFly 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+}
+
+@keyframes supFly {
+    0% {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+
+    50% {
+        transform: translateY(-12px) scale(1.3);
+        opacity: 0.8;
+    }
+
+    100% {
+        transform: translateY(0) scale(1.1);
+        opacity: 1;
+    }
+}
+
+/* ===== HIỆU ỨNG LASER CHẠY NGANG ===== */
+.sidebar-brand::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(45, 212, 191, 0.3), rgba(13, 148, 136, 0.5), rgba(45, 212, 191, 0.3), transparent);
+    transition: left 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    pointer-events: none;
+}
+
+.sidebar-brand:hover::before {
+    left: 100%;
+}
+
+/* ===== HIỆU ỨNG RIPPLE KHI CLICK ===== */
+.sidebar-brand:active {
+    transform: scale(0.97);
+    transition: transform 0.1s;
+}
+
+/* ===== HIỆU ỨNG PULSE NHẸ ===== */
+@keyframes softGlow {
+    0%, 100% {
+        box-shadow: 0 0 0 0 rgba(45, 212, 191, 0);
+    }
+
+    50% {
+        box-shadow: 0 0 0 5px rgba(45, 212, 191, 0.1);
+    }
+}
+
+.sidebar-brand {
+    animation: softGlow 3s ease-in-out infinite;
+}
+
+    .sidebar-brand:hover {
+        animation: none;
+    }
+
+/* ===== HIỆU ỨNG GẠCH CHÂN ĐỘNG ===== */
+.sidebar-brand-text::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #2dd4bf, #0d9488, #2dd4bf);
+    border-radius: 2px;
+    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sidebar-brand:hover .sidebar-brand-text::after {
+    width: 100%;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+    .sidebar-brand {
+        margin: 10px 10px 15px 10px;
+        padding: 8px 12px !important;
+    }
+
+    .sidebar-brand-text {
+        font-size: 1rem;
+    }
+
+    .sidebar-brand .rotate-n-15 {
+        font-size: 1.3rem;
+    }
+}

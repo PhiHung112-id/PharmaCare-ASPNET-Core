@@ -1,0 +1,178 @@
+﻿@model PharmaCare.Models.DashboardViewModel
+@{
+    ViewData["Title"] = "Tổng quan hệ thống";
+}
+
+<div class="container-fluid fade-in">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800 font-weight-bold">
+            <span class="material-symbols-rounded text-primary" style="font-size: 2.5rem; vertical-align: middle;">dashboard_customize</span>
+            Tổng quan hệ thống
+        </h1>
+        <div class="d-flex align-items-center">
+            <div class="d-flex border bg-white p-1 rounded-xl shadow-sm mr-3">
+                <input type="month" class="form-control border-0 bg-transparent shadow-none" value="@DateTime.Now.ToString("yyyy-MM")">
+            </div>
+            <button class="btn btn-primary shadow-sm rounded-xl px-4 py-2 border-0" style="background: #2563eb;" onclick="window.print()">
+                <span class="material-symbols-rounded" style="vertical-align: sub; font-size: 1.2rem;">picture_as_pdf</span> Xuất báo cáo
+            </button>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-0 shadow-sm h-100 py-2 text-white" style="background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%); border-radius: 20px;">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-white-50 text-uppercase mb-1">Doanh thu tháng @DateTime.Now.Month</div>
+                            <div class="h4 mb-0 font-weight-bold">@Model.MonthlyRevenue.ToString("N0")đ</div>
+                        </div>
+                        <div class="col-auto"><span class="material-symbols-rounded" style="font-size: 2.5rem; opacity: 0.4;">trending_up</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-0 shadow-sm h-100 py-2 text-white" style="background: linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%); border-radius: 20px;">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-white-50 text-uppercase mb-1">Lợi nhuận tạm tính</div>
+                            <div class="h4 mb-0 font-weight-bold">@Model.NetProfit.ToString("N0")đ</div>
+                        </div>
+                        <div class="col-auto"><span class="material-symbols-rounded" style="font-size: 2.5rem; opacity: 0.4;">account_balance_wallet</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-0 shadow-sm h-100 py-2 text-white" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 20px;">
+                <div class="card-body">
+                    <div class="text-xs font-weight-bold text-white-50 text-uppercase mb-1">Chỉ tiêu kho hàng</div>
+                    <div class="row no-gutters align-items-center">
+                        <div class="col-auto"><div class="h4 mb-0 mr-3 font-weight-bold">85%</div></div>
+                        <div class="col">
+                            <div class="progress progress-sm mr-2" style="background: rgba(255,255,255,0.2);">
+                                <div class="progress-bar bg-white" style="width: 85%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-0 shadow-sm h-100 py-2 text-white" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border-radius: 20px;">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-white-50 text-uppercase mb-1">Đơn hàng hôm nay</div>
+                            <div class="h4 mb-0 font-weight-bold">@Model.PendingOrders đơn</div>
+                        </div>
+                        <div class="col-auto"><span class="material-symbols-rounded" style="font-size: 2.5rem; opacity: 0.4;">shopping_bag</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Biểu đồ -->
+    <div class="row mb-4">
+        <div class="col-xl-8 col-lg-7">
+            <div class="card shadow-sm border-0 rounded-xl">
+                <div class="card-header bg-white py-3 border-0 mt-1">
+                    <h6 class="m-0 font-weight-bold text-primary">XU HƯỚNG DOANH THU 7 NGÀY QUA</h6>
+                </div>
+                <div class="card-body">
+                    <div style="height: 320px;"><canvas id="revenueChart"></canvas></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-4 col-lg-5">
+            <div class="card shadow-sm border-0 rounded-xl">
+                <div class="card-header bg-white py-3 border-0 mt-1">
+                    <h6 class="m-0 font-weight-bold text-primary">CƠ CẤU NHÓM THUỐC</h6>
+                </div>
+                <div class="card-body">
+                    <div style="height: 250px;"><canvas id="categoryPieChart"></canvas></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cảnh báo hết hạn -->
+    <div class="row">
+        <div class="col-lg-12 mb-4">
+            <div class="card shadow-sm border-0 rounded-xl">
+                <div class="card-header bg-white py-3 border-0 mt-1">
+                    <h6 class="m-0 font-weight-bold text-danger d-flex align-items-center">
+                        <span class="material-symbols-rounded mr-2">priority_high</span> CẢNH BÁO LÔ HÀNG SẮP HẾT HẠN
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        @foreach (var item in Model.ExpiryAlerts)
+                        {
+                            <div class="col-md-4 mb-3">
+                                <div class="p-3 border rounded-xl">
+                                    <div class="small font-weight-bold text-dark mb-1">@item.DrugName</div>
+                                    <div class="small text-muted mb-2">Lô: @item.BatchCode - <strong>@item.DaysLeft ngày nữa</strong></div>
+                                    <div class="progress rounded-pill" style="height: 10px;">
+                                        <div class="progress-bar @(item.DaysLeft < 30 ? "bg-danger" : "bg-warning")" style="width: @item.Percent%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const labelsLine = @Html.Raw(Json.Serialize(Model.Days));
+            const dataLine = @Html.Raw(Json.Serialize(Model.RevenueByDay));
+
+            const labelsPie = @Html.Raw(Json.Serialize(Model.Categories));
+            const dataPie = @Html.Raw(Json.Serialize(Model.CategoryPercents));
+
+            const ctx1 = document.getElementById('revenueChart').getContext('2d');
+            new Chart(ctx1, {
+                type: 'line',
+                data: {
+                    labels: labelsLine,
+                    datasets: [{
+                        label: 'Doanh thu',
+                        data: dataLine,
+                        borderColor: '#2563eb',
+                        backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 3
+                    }]
+                },
+                options: { maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            });
+
+            const ctx2 = document.getElementById('categoryPieChart').getContext('2d');
+            new Chart(ctx2, {
+                type: 'doughnut',
+                data: {
+                    labels: labelsPie,
+                    datasets: [{
+                        data: dataPie,
+                        backgroundColor: ['#4f46e5', '#10b981', '#0ea5e9']
+                    }]
+                },
+                options: { maintainAspectRatio: false, cutout: '70%' }
+            });
+        });
+    </script>
+}

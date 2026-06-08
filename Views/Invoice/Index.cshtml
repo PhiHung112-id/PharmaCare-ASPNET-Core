@@ -1,0 +1,199 @@
+﻿@model List<PharmaCare.Models.Invoice>
+@{
+    ViewData["Title"] = "Lịch sử hóa đơn";
+    int currentPage = ViewBag.CurrentPage ?? 1;
+    int totalPages = ViewBag.TotalPages ?? 1;
+}
+
+<style>
+    .rounded-25 {
+        border-radius: 25px !important;
+    }
+</style>
+
+<div class="container-fluid mt-4 fade-in">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h2 class="h3 mb-0 text-gray-800 font-weight-bold">
+            <span class="material-symbols-rounded align-middle text-success" style="font-size: 2.5rem;">history</span>
+            Lịch sử bán hàng
+        </h2>
+
+        <div class="d-flex gap-2 align-items-center">
+            <form method="get" action="/hoa-don/lich-su" class="m-0">
+                <div class="input-group input-group-sm" style="width: 300px;">
+                    <span class="input-group-text bg-white border-end-0 rounded-start-pill ps-3">
+                        <span class="material-symbols-rounded text-muted" style="font-size: 1.1rem;">search</span>
+                    </span>
+                    <input type="text" name="search" class="form-control border-start-0 rounded-end-pill" placeholder="Tìm mã HĐ, tên khách...">
+                </div>
+            </form>
+
+            <a href="/ban-hang" class="btn btn-success rounded-pill px-4 shadow-sm border-0 mx-1" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                <span class="material-symbols-rounded align-middle">add_shopping_cart</span> Quay lại bán hàng
+            </a>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0 rounded-25 overflow-hidden mb-4">
+        <div class="card-body p-0 d-flex flex-column">
+            <div class="table-responsive flex-grow-1">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="text-muted small text-uppercase font-weight-bold">
+                        <tr>
+                            <th class="ps-4 py-3">Mã hóa đơn</th>
+                            <th>Ngày lập</th>
+                            <th>Khách hàng</th>
+                            <th class="text-end">Tổng tiền</th>
+                            <th class="text-center pe-4" style="width: 120px;">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model != null && Model.Count > 0)
+                        {
+                            foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td class="ps-4 align-middle"><b class="text-primary">#@item.MaHd</b></td>
+                                    <td class="align-middle text-secondary small">@item.NgayLap?.ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td class="align-middle font-weight-bold text-dark">@(item.MaKhNavigation?.HoTen ?? "Khách lẻ")</td>
+                                    <td class="align-middle text-end font-weight-bold text-success">@item.TongTien?.ToString("N0")đ</td>
+
+                                    <td class="text-center pe-4 align-middle">
+                                        <div class="d-flex justify-content-center align-items-center">
+                                            <button class="btn btn-sm btn-light text-info rounded shadow-sm mx-1"
+                                                    onclick="viewInvoiceDetails('@item.MaHd', '@item.TongTien?.ToString("N0")')" title="Xem chi tiết">
+                                                <span class="material-symbols-rounded align-middle" style="font-size: 1.2rem;">visibility</span>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="5" class="text-center py-5 text-muted">Chưa có dữ liệu hóa đơn nào.</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            @if (totalPages > 0)
+            {
+                <div class="p-4 border-top bg-white mt-auto">
+                    <div class="d-sm-flex justify-content-between align-items-center">
+                        <div class="small text-muted mb-3 mb-sm-0">
+                            Trang <span class="font-weight-bold text-dark">@currentPage</span> / <span class="font-weight-bold text-dark">@totalPages</span>
+                        </div>
+                        <nav>
+                            <ul class="pagination pagination-sm mb-0 shadow-sm rounded-pill">
+                                <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                                    <a class="page-link" href="?page=@(currentPage - 1)">&laquo;</a>
+                                </li>
+
+                                @for (int i = 1; i <= totalPages; i++)
+                                {
+                                    <li class="page-item @(i == currentPage ? "active" : "")">
+                                        <a class="page-link" href="?page=@i">@i</a>
+                                    </li>
+                                }
+
+                                <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                                    <a class="page-link" href="?page=@(currentPage + 1)">&raquo;</a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- MODAL CHI TIẾT HÓA ĐƠN -->
+<div class="modal fade" id="modalDetail" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-25">
+            <div class="modal-header border-0" style="border-radius: 25px 25px 0 0;">
+                <h5 class="modal-title font-weight-bold text-success">
+                    Chi tiết hóa đơn <span id="lblMaHd" class="text-dark"></span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="table-responsive">
+                    <table class="table align-middle">
+                        <thead class="text-muted small text-uppercase">
+                            <tr class="border-bottom">
+                                <th class="ps-3">Tên thuốc</th>
+                                <th class="text-center">Số lượng</th>
+                                <th class="text-end">Đơn giá</th>
+                                <th class="text-end pe-3">Thành tiền</th>
+                            </tr>
+                        </thead>
+                        <tbody id="detailBody">
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <th colspan="3" class="text-end py-4 h5 mb-0">TỔNG CỘNG HÓA ĐƠN:</th>
+                                <th class="text-end text-success h4 mb-0 py-4 font-weight-bold pe-3" id="lblTotal">0đ</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer border-0" style="border-radius: 0 0 25px 25px;">
+                <button class="btn btn-light rounded-pill px-4 border" data-bs-dismiss="modal">Đóng</button>
+                <button class="btn btn-success rounded-pill px-4 border-0 shadow-sm" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);" onclick="window.print()">
+                    <span class="material-symbols-rounded align-middle">print</span> In hóa đơn
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function viewInvoiceDetails(maHd, tongTien) {
+            $('#lblMaHd').text('#' + maHd);
+            $('#lblTotal').text(tongTien + 'đ');
+
+            $('#detailBody').html('<tr><td colspan="4" class="text-center py-4"><div class="spinner-border text-success spinner-border-sm"></div> Đang tải dữ liệu...</td></tr>');
+
+            var modal = new bootstrap.Modal(document.getElementById('modalDetail'));
+            modal.show();
+
+            $.ajax({
+                url: '/Invoices/GetDetails',
+                type: 'GET',
+                data: { id: maHd },
+                success: function(data) {
+                    let html = '';
+                    if (!data || data.length === 0) {
+                        html = '<tr><td colspan="4" class="text-center text-danger">Không tìm thấy thông tin chi tiết!</td></tr>';
+                    } else {
+                        data.forEach(item => {
+                            let ten = item.tenThuoc || item.TenThuoc || "Thuốc không tên";
+                            let sl = item.soLuong || item.SoLuong || 0;
+                            let gia = item.donGia || item.DonGia || 0;
+                            let tong = item.thanhTien || item.ThanhTien || 0;
+
+                            html += `
+                            <tr class="border-bottom">
+                                <td class="ps-3"><b class="text-dark">${ten}</b></td>
+                                <td class="text-center">${sl}</td>
+                                <td class="text-end">${Number(gia).toLocaleString()}đ</td>
+                                <td class="text-end font-weight-bold pe-3">${Number(tong).toLocaleString()}đ</td>
+                            </tr>`;
+                        });
+                    }
+                    $('#detailBody').html(html);
+                },
+                error: function() {
+                    $('#detailBody').html('<tr><td colspan="4" class="text-center text-danger">Lỗi kết nối máy chủ! Vui lòng thử lại.</td></tr>');
+                }
+            });
+        }
+    </script>
+}

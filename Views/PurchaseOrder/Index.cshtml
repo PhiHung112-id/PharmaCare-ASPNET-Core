@@ -1,0 +1,201 @@
+﻿@{
+    ViewData["Title"] = "Danh sách Phiếu nhập hàng";
+}
+
+<div class="container-fluid fade-in mt-4">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800 font-weight-bold">
+            <span class="material-symbols-rounded text-success align-middle" style="font-size: 2.5rem;">receipt_long</span>
+            Quản lý Nhập hàng
+        </h1>
+
+        <div class="d-flex gap-2 align-items-center">
+            <div class="input-group input-group-sm" style="width: 300px;">
+                <span class="input-group-text bg-white border-end-0 rounded-start-pill ps-3">
+                    <span class="material-symbols-rounded text-muted" style="font-size: 1.1rem;">search</span>
+                </span>
+                <input type="text" id="searchOrder" class="form-control border-start-0 rounded-end-pill" placeholder="Tìm mã phiếu, NCC...">
+            </div>
+
+            <a href="/phieu-nhap-hang/thong-tin?mode=Create" class="btn btn-primary shadow-sm rounded-pill px-4 border-0 mx-1" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                <span class="material-symbols-rounded align-middle me-1">add_circle</span> Lập phiếu mới
+            </a>
+        </div>
+    </div>
+
+    <!-- 2. THỐNG KÊ NHANH -->
+    <div class="row mb-4">
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-0 border-left-primary shadow-sm h-100 py-2 rounded-25">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center text-primary">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-uppercase mb-1">Tổng nhập tháng này</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@(String.Format("{0:N0}", ViewBag.TotalAmountThisMonth))đ</div>
+                        </div>
+                        <div class="col-auto"><span class="material-symbols-rounded" style="font-size: 2.5rem;">payments</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-0 border-left-info shadow-sm h-100 py-2 rounded-25">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center text-info">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-uppercase mb-1">Số phiếu đã lập</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@ViewBag.TotalOrders Phiếu</div>
+                        </div>
+                        <div class="col-auto"><span class="material-symbols-rounded" style="font-size: 2.5rem;">inventory</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-0 border-left-warning shadow-sm h-100 py-2 rounded-25">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center text-warning">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-uppercase mb-1">Đối tác cung ứng</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@ViewBag.TotalSuppliers NCC</div>
+                        </div>
+                        <div class="col-auto"><span class="material-symbols-rounded" style="font-size: 2.5rem;">local_shipping</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm mb-4 rounded-25 border-0 overflow-hidden">
+        <div class="card-body p-0 d-flex flex-column">
+            <div class="table-responsive flex-grow-1">
+                <table class="table table-hover align-middle mb-0" id="purchaseOrderTable">
+                    <thead>
+                        <tr class="text-uppercase small font-weight-bold text-muted border-0">
+                            <th class="ps-4 py-3">Mã số</th>
+                            <th>Thời gian</th>
+                            <th>Nhà cung cấp</th>
+                            <th>Giá trị</th>
+                            <th>Trạng thái</th>
+                            <th class="text-center pe-4" style="width: 150px;">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="orderTableBody"></tbody>
+                </table>
+            </div>
+
+            <div class="p-4 border-top bg-white mt-auto">
+                <div class="d-sm-flex justify-content-between align-items-center">
+                    <div class="small text-muted mb-3 mb-sm-0">
+                        Hiển thị <span id="showingStart" class="font-weight-bold text-dark">0</span> - <span id="showingEnd" class="font-weight-bold text-dark">0</span> của <span id="totalRecords" class="font-weight-bold text-dark">0</span> phiếu
+                    </div>
+                    <nav>
+                        <ul class="pagination pagination-sm mb-0 shadow-sm rounded-pill" id="pagination"></ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/site-pagination.js"></script>
+
+    <script>
+        let ordersData = @Html.Raw(ViewBag.OrdersJson ?? "[]");
+        let rowsPerPage = 10;
+        let currentPage = 1;
+        let searchQuery = ""; 
+
+        document.addEventListener("DOMContentLoaded", () => {
+            renderTable();
+
+            const searchInput = document.getElementById('searchOrder');
+            if (searchInput) {
+                searchInput.addEventListener('input', (e) => {
+                    searchQuery = e.target.value.toLowerCase();
+                    currentPage = 1; 
+                    renderTable();
+                });
+            }
+        });
+
+        function getStatusBadge(status) {
+            if(status === 'Đã hủy') return '<span class="badge bg-danger text-white rounded-pill px-3 py-2" style="font-size: 0.75rem;">Đã hủy</span>';
+            if(status === 'Đang chờ') return '<span class="badge bg-warning text-dark rounded-pill px-3 py-2" style="font-size: 0.75rem;">Đang chờ</span>';
+            return '<span class="badge bg-success text-white rounded-pill px-3 py-2" style="font-size: 0.75rem;">Đã nhập kho</span>';
+        }
+
+        function orderRowTemplate(order, index) {
+            return `
+                <tr>
+                    <td class="align-middle ps-4"><b class="text-primary">#${order.maPN}</b></td>
+                    <td class="align-middle text-secondary small">${order.ngayNhap}</td>
+                    <td class="align-middle font-weight-bold text-dark">${order.nhaCungCap}</td>
+                    <td class="align-middle"><span class="text-dark font-weight-bold">${new Intl.NumberFormat('vi-VN').format(order.tongTien)}đ</span></td>
+                    <td class="align-middle">${getStatusBadge(order.trangThai)}</td>
+
+                    <td class="align-middle text-center pe-4">
+                        <div class="d-flex justify-content-center align-items-center">
+
+                            <!-- Nút Xem chi tiết -->
+                            <a href="/phieu-nhap-hang/thong-tin/${order.maPN}?mode=Detail"
+                               class="btn btn-sm btn-light text-info rounded shadow-sm mx-1" title="Xem chi tiết">
+                                <span class="material-symbols-rounded align-middle" style="font-size: 1.2rem;">visibility</span>
+                            </a>
+
+                            <!-- Nút Sửa phiếu -->
+                            <a href="/phieu-nhap-hang/thong-tin/${order.maPN}?mode=Edit"
+                               class="btn btn-sm btn-light text-primary rounded shadow-sm mx-1" title="Sửa phiếu">
+                                <span class="material-symbols-rounded align-middle" style="font-size: 1.2rem;">edit_square</span>
+                            </a>
+
+                            <!-- Nút Xóa -->
+                            <button class="btn btn-sm btn-light text-danger rounded shadow-sm mx-1"
+                                    onclick="confirmDelete('${order.maPN}')" title="Xóa phiếu">
+                                <span class="material-symbols-rounded align-middle" style="font-size: 1.2rem;">delete</span>
+                            </button>
+
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }
+
+        function renderTable() {
+            const filteredData = ordersData.filter(o =>
+                o.maPN.toLowerCase().includes(searchQuery) ||
+                o.nhaCungCap.toLowerCase().includes(searchQuery)
+            );
+
+            commonPagination(
+                filteredData,
+                currentPage,
+                rowsPerPage,
+                'orderTableBody',
+                'pagination',
+                orderRowTemplate,
+                'changePage'
+            );
+        }
+
+        function changePage(page) {
+            currentPage = page;
+            renderTable();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function confirmDelete(id) {
+            if(confirm(`Bạn có chắc muốn xóa vĩnh viễn phiếu #${id}?\nHệ thống sẽ trừ tồn kho tương ứng của các loại thuốc trong phiếu.`)) {
+                fetch(`/phieu-nhap-hang/xoa`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: `id=${id}`
+                }).then(res => res.json()).then(data => {
+                    if(data.success) location.reload();
+                    else alert("Lỗi khi xóa phiếu!");
+                });
+            }
+        }
+    </script>
+}

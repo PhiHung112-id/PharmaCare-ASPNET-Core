@@ -1,0 +1,178 @@
+﻿
+/* Mặc định cho body tàng hình hoàn toàn */
+body {
+    opacity: 0;
+    visibility: hidden;
+    background-color: #f8f9fc; /* Màu nền lúc đang tải, ông có thể đổi sang màu tối luôn #121212 */
+}
+
+    /* Lớp này sẽ được JS gắn vào khi đã load xong CSS/Theme */
+    body.ready {
+        opacity: 1;
+        visibility: visible;
+        transition: opacity 0.3s ease-out; /* Hiệu ứng mờ dần ra siêu mượt */
+    }
+
+/* 1. Quy tắc chung & Hiệu ứng */
+.fade-in {
+    animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 2. Bo góc chuẩn Soft UI */
+.rounded-20 {
+    border-radius: 20px !important;
+}
+
+.rounded-25 {
+    border-radius: 25px !important;
+}
+
+.rounded-xl {
+    border-radius: 15px !important;
+}
+
+/* 3. Hệ thống màu Gradient đồng bộ */
+.bg-gradient-indigo {
+    background: linear-gradient(135deg, #6366f1 0%, #4338ca 100%) !important;
+}
+
+.bg-gradient-rose {
+    background: linear-gradient(135deg, #f43f5e 0%, #be123c 100%) !important;
+}
+
+.bg-gradient-cyan {
+    background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%) !important;
+}
+
+.bg-gradient-amber {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+}
+
+.bg-gradient-blue {
+    background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%) !important;
+}
+
+/* 4. Thống nhất độ cao Header cho Card (Chống lệch) */
+.card-header {
+    background-color: #ffffff !important;
+    border-bottom: none !important;
+    padding: 1.25rem !important;
+}
+
+/* Class này dùng cho các Card nằm cạnh nhau để bằng đầu bằng đuôi */
+.equal-header .card-header {
+    height: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+/* 5. Nút bấm Icon (Style Hùng thích) */
+.btn-icon-sm {
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: #f8fafc;
+    border-radius: 8px;
+    color: #64748b;
+    transition: 0.2s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+    .btn-icon-sm:hover {
+        background: #e2e8f0;
+        transform: scale(1.1);
+        color: #1e293b;
+    }
+
+    .btn-icon-sm.text-info:hover {
+        background: #e0f2fe;
+        color: #0369a1;
+    }
+
+    .btn-icon-sm.text-success:hover {
+        background: #dcfce7;
+        color: #15803d;
+    }
+
+    .btn-icon-sm.text-danger:hover {
+        background: #fee2e2;
+        color: #dc2626;
+    }
+
+/* 6. Hình ảnh thuốc & Thumbnail */
+.drug-thumb {
+    width: 45px;
+    height: 45px;
+    border-radius: 10px;
+    object-fit: cover;
+    border: 1px solid #f1f5f9;
+    background: #fff;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+/* 7. Nhãn trạng thái (Badges) */
+.stock-badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: bold;
+}
+
+.stock-out {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.stock-low {
+    background: #fef3c7;
+    color: #d97706;
+}
+
+.stock-normal {
+    background: #dcfce7;
+    color: #16a34a;
+}
+
+.status-active {
+    background: #dcfce7;
+    color: #16a34a;
+}
+
+.status-inactive {
+    background: #f1f5f9;
+    color: #64748b;
+}
+
+/* 8. Nút Thao tác nhanh (Quick Action Cards) */
+.quick-action-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1.25rem;
+    border-radius: 20px;
+    background: #f8fafc;
+    border: 1px solid #f1f5f9;
+    transition: all 0.3s ease;
+    text-decoration: none !important;
+}
+
+    .quick-action-card:hover {
+        background: #ffffff;
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+    }

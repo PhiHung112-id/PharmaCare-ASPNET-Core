@@ -1,0 +1,338 @@
+﻿@model PharmaCare.Models.PurchaseOrder
+@{
+    string mode = ViewBag.Mode ?? "Create";
+    bool isReadOnly = (mode == "Detail");
+    bool isCreate = (mode == "Create");
+
+    ViewData["Title"] = isCreate ? "Lập phiếu nhập" : (mode == "Edit" ? "Sửa phiếu nhập" : "Chi tiết phiếu nhập");
+
+    var details = ViewBag.Details as List<PharmaCare.Models.PurchaseOrderDetail> ?? new List<PharmaCare.Models.PurchaseOrderDetail>();
+
+    if (isCreate && details.Count == 0)
+    {
+        details.Add(new PharmaCare.Models.PurchaseOrderDetail { SoLuongNhap = 1, DonGiaNhap = 0 });
+    }
+}
+
+<style>
+    #purchaseDetailTable th, #purchaseDetailTable td {
+        padding: 12px 6px !important;
+        vertical-align: middle;
+        white-space: nowrap;
+    }
+
+    /* 2. Style cho ô nhập liệu trong bảng (Input Clean) */
+    .table-input-clean {
+        width: 100%;
+        border: 1px solid #d1d3e2;
+        border-radius: 10px;
+        padding: 8px 12px;
+        outline: none;
+        transition: all 0.2s;
+        font-size: 0.9rem;
+    }
+
+        .table-input-clean:focus {
+            border-color: #1cc88a;
+            box-shadow: 0 0 0 0.2rem rgba(28, 200, 138, 0.1);
+        }
+
+        .table-input-clean[readonly] {
+            cursor: not-allowed;
+        }
+
+    /* 3. Đặt độ rộng cố định cho các cột để không bị co nhỏ */
+    .col-drug {
+        min-width: 250px;
+    }
+
+    .col-batch {
+        min-width: 140px;
+    }
+
+    .col-date {
+        min-width: 160px;
+    }
+
+    .col-qty {
+        min-width: 90px;
+    }
+
+    .col-price {
+        min-width: 160px;
+    }
+
+    .col-total {
+        min-width: 140px;
+    }
+
+    /* Custom Scrollbar cho bảng */
+    .table-responsive::-webkit-scrollbar {
+        height: 8px;
+    }
+
+    .table-responsive::-webkit-scrollbar-thumb {
+        background: #cbd5e0;
+        border-radius: 4px;
+    }
+</style>
+
+<div class="container-fluid fade-in mt-4">
+    <!-- Header -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800 font-weight-bold">
+            <span class="material-symbols-rounded text-success" style="font-size: 2.2rem; vertical-align: middle;">
+                @(isCreate ? "add_task" : (isReadOnly ? "visibility" : "edit_note"))
+            </span>
+            @ViewData["Title"]
+        </h1>
+        <a href="/phieu-nhap-hang" class="btn btn-light shadow-sm rounded-pill px-4 border">
+            <span class="material-symbols-rounded align-middle">arrow_back</span> Quay lại
+        </a>
+    </div>
+
+    <form action="/phieu-nhap-hang/luu" method="post" id="purchaseForm">
+        <input type="hidden" name="Mode" value="@mode" />
+        @if (!isCreate)
+        {
+            <input type="hidden" name="MaPn" value="@Model?.MaPn" />
+        }
+
+        <div class="row">
+            <div class="col-xl-3 col-lg-4">
+                <div class="card shadow-sm mb-4 border-0 rounded-25 border-bottom-success">
+                    <div class="card-body">
+                        <h6 class="font-weight-bold text-muted small text-uppercase mb-3">Thông tin phiếu</h6>
+
+                        <div class="form-group mb-3">
+                            <label class="small font-weight-bold">NHÀ CUNG CẤP</label>
+                            <select class="form-select bg-light rounded-pill px-3" name="MaNcc" @(isReadOnly ? "disabled" : "") required>
+                                <option value="">-- Chọn NCC --</option>
+                                @if (ViewBag.Suppliers != null)
+                                {
+                                    foreach (var s in ViewBag.Suppliers)
+                                    {
+                                        <option value="@s.MaNcc" selected="@(Model?.MaNcc == s.MaNcc)">@s.TenNcc</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label class="small font-weight-bold">NGÀY NHẬP</label>
+                            <input type="datetime-local" class="form-control bg-light rounded-pill px-3" name="NgayNhap"
+                                   value="@(Model?.NgayNhap?.ToString("yyyy-MM-ddTHH:mm") ?? DateTime.Now.ToString("yyyy-MM-ddTHH:mm"))"
+                                   @(isReadOnly ? "readonly" : "") required />
+                        </div>
+
+                        <div class="form-group mb-4">
+                            <label class="small font-weight-bold">GHI CHÚ</label>
+                            <textarea class="form-control bg-light rounded-xl p-3" name="GhiChu" rows="3"
+                                      placeholder="Ghi chú..." @(isReadOnly ? "readonly" : "")>@Model?.GhiChu</textarea>
+                        </div>
+
+                        <div class="bg-gray-100 p-4 rounded-xl border mb-4">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="small text-muted font-weight-bold">TỔNG TIỀN:</span>
+                                <span class="h4 mb-0 font-weight-bold text-success" id="totalAmountDisplay">
+                                    @((Model?.TongTienNhap ?? 0).ToString("N0"))đ
+                                </span>
+                                <input type="hidden" name="TongTienNhap" id="totalAmountInput" value="@(Model?.TongTienNhap ?? 0)" />
+                            </div>
+                        </div>
+
+                        @if (!isReadOnly)
+                        {
+                            <button type="submit" class="btn btn-success w-100 py-3 shadow font-weight-bold rounded-15 border-0 bg-gradient-success">
+                                <span class="material-symbols-rounded align-middle">save</span> LƯU PHIẾU
+                            </button>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-9 col-lg-8">
+                <div class="card shadow-sm mb-4 border-0 rounded-25">
+                    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                        <h6 class="m-0 font-weight-bold text-primary small text-uppercase">Chi tiết hàng nhập</h6>
+                        @if (!isReadOnly)
+                        {
+                            <button type="button" class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm border-0 bg-gradient-indigo" onclick="addRow()">
+                                <span class="material-symbols-rounded align-middle" style="font-size:1.1rem;">add</span> Thêm thuốc
+                            </button>
+                        }
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0" id="purchaseDetailTable">
+                                <thead class="text-muted small text-uppercase">
+                                    <tr>
+                                        <th class="ps-4 col-drug">Thuốc</th>
+                                        <th class="col-batch">Mã Lô</th>
+                                        <th class="col-date">Hạn dùng</th>
+                                        <th class="col-qty">SL</th>
+                                        <th class="col-price">Giá nhập</th>
+                                        <th class="col-total">Thành tiền</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="detailBody">
+                                    @foreach (var d in details)
+                                    {
+                                        <tr class="item-row">
+                                            <td class="ps-4 py-3">
+                                                <select class="form-select border-0 bg-light rounded-pill px-3" name="DrugIds[]" @(isReadOnly ? "disabled" : "") required>
+                                                    <option value="">-- Chọn thuốc --</option>
+                                                    @if (ViewBag.Drugs != null)
+                                                    {
+                                                        foreach (var dr in ViewBag.Drugs)
+                                                        {
+                                                            <option value="@dr.MaThuoc" selected="@(d.MaThuoc == dr.MaThuoc)">@dr.TenThuoc</option>
+                                                        }
+                                                    }
+                                                </select>
+                                            </td>
+                                            <td>
+                                                <input type="text" class="table-input-clean text-center" name="BatchNumbers[]"
+                                                       value="@(isCreate ? "" : d.MaLo)" @(isReadOnly ? "readonly" : "") required>
+                                            </td>
+                                            <td>
+                                                <input type="date" class="table-input-clean" name="ExpiryDates[]"
+                                                       value="@(d.Batch != null ? d.Batch.HanSuDung.ToString("yyyy-MM-dd") : "")"
+                                                       @(isReadOnly ? "readonly" : "") required>
+                                            </td>
+                                            <td>
+                                                <input type="text" class="table-input-clean text-center qty-input"
+                                                       name="Quantities[]" value="@d.SoLuongNhap"
+                                                       @(isReadOnly ? "readonly" : "")
+                                                       oninput="this.value = this.value.replace(/[^0-9]/g, ''); calculateRow(this);" required>
+                                            </td>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <input type="text" class="table-input-clean text-end price-input"
+                                                           name="Prices[]" value="@((int)d.DonGiaNhap)"
+                                                           @(isReadOnly ? "readonly" : "")
+                                                           oninput="this.value = this.value.replace(/[^0-9]/g, ''); calculateRow(this);" required>
+                                                    <span class="ms-2 small text-muted">đ</span>
+                                                </div>
+                                            </td>
+                                            <td class="text-end pe-3 font-weight-bold text-dark subtotal">
+                                                @((d.ThanhTien).ToString("N0"))đ
+                                            </td>
+                                            <td class="text-center pe-4">
+                                                @if (!isReadOnly)
+                                                {
+                                                    <button type="button" class="btn btn-sm btn-light text-danger rounded-circle" onclick="removeRow(this)">
+                                                        <span class="material-symbols-rounded align-middle">close</span>
+                                                    </button>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<table style="display:none;">
+    <tbody id="rowTemplate">
+        <tr class="item-row">
+            <td class="ps-4 py-3">
+                <select class="form-select border-0 bg-light rounded-pill px-3" name="DrugIds[]" required>
+                    <option value="">-- Chọn thuốc --</option>
+                    @if (ViewBag.Drugs != null)
+                    {
+                        foreach (var dr in ViewBag.Drugs)
+                        {
+                            <option value="@dr.MaThuoc">@dr.TenThuoc</option>
+                        }
+                    }
+                </select>
+            </td>
+            <td><input type="text" class="table-input-clean text-center" name="BatchNumbers[]" readonly required></td>
+            <td><input type="date" class="table-input-clean" name="ExpiryDates[]" required></td>
+            <td><input type="text" class="table-input-clean text-center qty-input" name="Quantities[]" value="1" oninput="this.value = this.value.replace(/[^0-9]/g, ''); calculateRow(this);" required></td>
+            <td>
+                <div class="d-flex align-items-center">
+                    <input type="text" class="table-input-clean text-end price-input" name="Prices[]" value="0" oninput="this.value = this.value.replace(/[^0-9]/g, ''); calculateRow(this);" required>
+                    <span class="ms-2 small text-muted">đ</span>
+                </div>
+            </td>
+            <td class="text-end pe-3 font-weight-bold text-dark subtotal">0đ</td>
+            <td class="text-center pe-4">
+                <button type="button" class="btn btn-sm btn-light text-danger rounded-circle" onclick="removeRow(this)"><span class="material-symbols-rounded">close</span></button>
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+@section Scripts {
+    <script>
+        function generateBatchCode() {
+            const now = new Date();
+            const dateStr = now.getFullYear().toString().slice(-2) +
+                            (now.getMonth() + 1).toString().padStart(2, '0') +
+                            now.getDate().toString().padStart(2, '0');
+            const timeStr = now.getHours().toString().padStart(2, '0') +
+                            now.getMinutes().toString().padStart(2, '0') +
+                            now.getSeconds().toString().padStart(2, '0');
+            return "LO" + dateStr + timeStr;
+        }
+
+        window.onload = function() {
+            const isCreate = "@isCreate" === "True";
+            if(isCreate) {
+                const firstBatchInput = document.querySelector('input[name="BatchNumbers[]"]');
+                if(firstBatchInput && !firstBatchInput.value) {
+                    firstBatchInput.value = generateBatchCode();
+                }
+            }
+        }
+
+        function addRow() {
+            var tbody = document.getElementById("detailBody");
+            var template = document.getElementById("rowTemplate").firstElementChild.cloneNode(true);
+
+            template.querySelector('input[name="BatchNumbers[]"]').value = generateBatchCode();
+
+            tbody.appendChild(template);
+            updateSummary();
+        }
+
+        function removeRow(btn) {
+            var rows = document.querySelectorAll("#detailBody .item-row");
+            if (rows.length > 1) {
+                btn.closest('tr').remove();
+                updateSummary();
+            } else {
+                alert("Phải có ít nhất 1 mặt hàng!");
+            }
+        }
+
+        function calculateRow(input) {
+            var row = input.closest('tr');
+            var qty = parseFloat(row.querySelector(".qty-input").value) || 0;
+            var price = parseFloat(row.querySelector(".price-input").value) || 0;
+            var subtotal = qty * price;
+            row.querySelector(".subtotal").innerText = new Intl.NumberFormat('vi-VN').format(subtotal) + "đ";
+            updateSummary();
+        }
+
+        function updateSummary() {
+            var rows = document.querySelectorAll("#detailBody .item-row");
+            var total = 0;
+            rows.forEach(row => {
+                var qty = parseFloat(row.querySelector(".qty-input").value) || 0;
+                var price = parseFloat(row.querySelector(".price-input").value) || 0;
+                total += (qty * price);
+            });
+            document.getElementById("totalAmountDisplay").innerText = new Intl.NumberFormat('vi-VN').format(total) + "đ";
+            document.getElementById("totalAmountInput").value = total;
+        }
+    </script>
+}

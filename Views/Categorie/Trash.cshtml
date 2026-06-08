@@ -1,0 +1,65 @@
+﻿@model IEnumerable<PharmaCare.Models.Category>
+@{
+    ViewData["Title"] = "Thùng rác nhóm thuốc";
+}
+
+<div class="container-fluid mt-4">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800 text-danger"><i class="fas fa-trash-alt"></i> Thùng rác Nhóm thuốc</h1>
+        <a href="@Url.Action("Index")" class="btn btn-secondary btn-sm shadow-sm rounded-pill px-3">
+            <i class="fas fa-arrow-left fa-sm"></i> Quay lại danh sách
+        </a>
+    </div>
+
+    <div class="card shadow mb-4 border-left-danger rounded-25 border-0">
+        <div class="card-header py-3 bg-white border-0">
+            <h6 class="m-0 font-weight-bold text-danger">Các nhóm thuốc đã xóa tạm thời</h6>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" id="trashTable" width="100%">
+                    <thead>
+                        <tr>
+                            <th class="pl-4">Mã nhóm</th>
+                            <th>Tên nhóm thuốc</th>
+                            <th>Ngày xóa</th>
+                            <th>Người xóa</th>
+                            <th class="text-center pr-4">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (!Model.Any())
+                        {
+                            <tr><td colspan="5" class="text-center py-4 text-muted">Thùng rác trống</td></tr>
+                        }
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="pl-4 text-muted small">@item.MaNhom</td>
+                                <td class="font-weight-bold">@item.TenNhom</td>
+                                <td>@(item.NgayXoa?.ToString("dd/MM/yyyy HH:mm"))</td>
+                                <td>@item.NguoiXoa</td>
+                                <td class="text-center pr-4">
+                                    <!-- Form Khôi phục -->
+                                    <form action="/nhom-thuoc/khoi-phuc" method="post" class="d-inline">
+                                        <input type="hidden" name="Id" value="@item.MaNhom" />
+                                        <button type="submit" class="btn btn-success btn-sm rounded-pill px-3 shadow-sm me-1" title="Khôi phục">
+                                            <i class="fas fa-undo"></i> Khôi phục
+                                        </button>
+                                    </form>
+                                    <!-- Form Xóa vĩnh viễn -->
+                                    <form action="/nhom-thuoc/xoa-vinh-vien" method="post" class="d-inline" onsubmit="return confirm('CẢNH BÁO: Xóa vĩnh viễn sẽ không thể khôi phục. Tiếp tục?');">
+                                        <input type="hidden" name="Id" value="@item.MaNhom" />
+                                        <button type="submit" class="btn btn-danger btn-sm rounded-pill px-3 shadow-sm" title="Xóa vĩnh viễn">
+                                            <i class="fas fa-times"></i> Xóa vĩnh viễn
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

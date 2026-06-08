@@ -1,0 +1,318 @@
+﻿@{
+    ViewData["Title"] = "Quản lý Đơn vị tính";
+}
+
+<div class="container-fluid fade-in px-4">
+    <!-- 1. TOP TOOLBAR -->
+    <div class="card shadow-sm border-0 rounded-xl mb-4 mt-3">
+        <div class="card-body p-3">
+            <div class="row align-items-center">
+                <div class="col-xl-3 col-lg-12 mb-3 mb-xl-0">
+                    <h1 class="h4 mb-0 text-gray-800 fw-bold">Đơn vị tính</h1>
+                    <p class="text-muted small mb-0 text-nowrap">Quản lý các đơn vị đo lường</p>
+                </div>
+                <div class="col-xl-6 col-lg-8">
+                    <!-- Thanh tìm kiếm -->
+                    <div class="row g-2">
+                        <div class="col-md-5">
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text bg-light border-light rounded-start-pill ps-3">
+                                    <span class="material-symbols-rounded text-muted" style="font-size: 1.1rem;">search</span>
+                                </span>
+                                <input type="text" id="searchUnit" class="form-control border-light bg-light rounded-end-pill" placeholder="Tên đơn vị, ghi chú...">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-lg-4 text-xl-end mt-3 mt-xl-0 d-flex justify-content-xl-end gap-2">
+                    <a href="/don-vi-tinh/thung-rac" class="btn btn-light btn-sm shadow-sm rounded-pill px-3 border" title="Thùng rác">
+                        <span class="material-symbols-rounded align-middle" style="font-size: 1.1rem;">delete_sweep</span>
+                    </a>
+                    <button class="btn btn-success btn-sm shadow-sm rounded-pill mx-1" title="Xuất Excel">
+                        <span class="material-symbols-rounded align-middle" style="font-size: 1.1rem;">download</span>
+                    </button>
+                    <button class="btn btn-primary btn-sm shadow-sm rounded-pill px-3" style="background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%); border:none;" data-bs-toggle="modal" data-bs-target="#addUnitModal">
+                        <span class="material-symbols-rounded align-middle" style="font-size: 1.1rem;">add</span> Thêm đơn vị
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. STATS ROW -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card border-0 shadow-sm h-100 bg-gradient-indigo text-white rounded-20">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-white-50 small text-uppercase fw-bold">Tổng số đơn vị</div>
+                        <div class="h4 mb-0 fw-bold">@ViewBag.TotalUnits</div>
+                    </div>
+                    <span class="material-symbols-rounded opacity-50" style="font-size: 2.5rem;">straighten</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card border-0 shadow-sm h-100 bg-gradient-success text-white rounded-20" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-white-50 small text-uppercase fw-bold">Đang sử dụng</div>
+                        <div class="h4 mb-0 fw-bold">@ViewBag.ActiveUnits</div>
+                    </div>
+                    <span class="material-symbols-rounded opacity-50" style="font-size: 2.5rem;">check_circle</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. MAIN CONTENT -->
+    <div class="row">
+        <div class="col-12 mb-4">
+            <div class="card shadow-sm border-0 rounded-25 overflow-hidden h-100">
+                <div class="card-header bg-white py-3 border-0 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 fw-bold text-primary small text-uppercase">📋 Danh sách đơn vị tính</h6>
+                    <button class="btn btn-sm btn-light border rounded-pill" onclick="location.reload()">
+                        <span class="material-symbols-rounded align-middle" style="font-size: 1rem;">refresh</span> Làm mới
+                    </button>
+                </div>
+                <div class="card-body p-0 d-flex flex-column">
+                    <div class="table-responsive flex-grow-1">
+                        <table class="table table-hover align-middle mb-0" id="unitTable">
+                            <thead class="text-muted small fw-bold text-uppercase">
+                                <tr>
+                                    <th class="ps-4" style="width: 80px;">STT</th>
+                                    <th style="width: 250px;">Tên đơn vị</th>
+                                    <th>Ghi chú</th>
+                                    <th style="width: 150px;">Trạng thái</th>
+                                    <th style="width: 150px;" class="text-center pe-4">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <!-- ĐÃ FIX: Thêm ID cho tbody -->
+                            <tbody id="unitTableBody"></tbody>
+                        </table>
+                    </div>
+
+                    <!-- ĐÃ FIX: Bổ sung thanh Phân trang -->
+                    <div class="p-4 border-top mt-auto">
+                        <div class="d-sm-flex justify-content-between align-items-center">
+                            <div class="small text-muted mb-2 mb-sm-0">
+                                Hiển thị <span id="showingStart" class="fw-bold text-dark">0</span> - <span id="showingEnd" class="fw-bold text-dark">0</span> của <span id="totalRecords" class="fw-bold text-dark">0</span> đơn vị
+                            </div>
+                            <nav><ul class="pagination pagination-sm mb-0 rounded-pill shadow-sm" id="pagination"></ul></nav>
+                        </div>
+                    </div>
+                    <!-- Kết thúc thanh Phân trang -->
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Unit Modal -->
+<div class="modal fade" id="addUnitModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-25 shadow-lg">
+            <div class="modal-header bg-primary text-white border-0 py-3">
+                <h5 class="modal-title fw-bold"><span class="material-symbols-rounded align-middle me-2">add_box</span>Thêm đơn vị tính mới</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="/Units/Create" method="post">
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted required">TÊN ĐƠN VỊ</label>
+                        <input type="text" name="Name" class="form-control rounded-pill bg-light border-light px-3" required placeholder="VD: Viên, Hộp, Chai...">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted">MÔ TẢ NGẮN</label>
+                        <input type="text" name="ShortName" class="form-control rounded-pill bg-light border-light px-3" placeholder="VD: Đơn vị cơ bản">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted">GHI CHÚ</label>
+                        <textarea name="Description" class="form-control rounded-xl bg-light border-light p-3" rows="3"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted">TRẠNG THÁI</label>
+                        <select name="Status" class="form-select rounded-pill bg-light border-light px-3">
+                            <option value="active">Đang sử dụng</option>
+                            <option value="inactive">Không sử dụng</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 p-4 pt-0" style="border-radius: 0 0 25px 25px;">
+                    <button type="button" class="btn btn-light rounded-pill px-4 border" data-bs-dismiss="modal">Hủy bỏ</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4 border-0">Lưu lại</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Unit Modal -->
+<div class="modal fade" id="editUnitModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-25 shadow-lg">
+            <div class="modal-header bg-warning text-white border-0 py-3">
+                <h5 class="modal-title fw-bold"><span class="material-symbols-rounded align-middle me-2">edit</span>Cập nhật đơn vị</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="/Units/Edit" method="post">
+                <div class="modal-body p-4">
+                    <input type="hidden" name="Id" id="editUnitId">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted required">TÊN ĐƠN VỊ</label>
+                        <input type="text" name="Name" id="editUnitName" class="form-control rounded-pill bg-light border-light px-3" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted">MÔ TẢ NGẮN</label>
+                        <input type="text" name="ShortName" id="editUnitShortName" class="form-control rounded-pill bg-light border-light px-3">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted">GHI CHÚ</label>
+                        <textarea name="Description" id="editUnitDescription" class="form-control rounded-xl bg-light border-light p-3" rows="3"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted">TRẠNG THÁI</label>
+                        <select name="Status" id="editStatus" class="form-select rounded-pill bg-light border-light px-3">
+                            <option value="active">Đang sử dụng</option>
+                            <option value="inactive">Không sử dụng</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 p-4 pt-0" style="border-radius: 0 0 25px 25px;">
+                    <button type="button" class="btn btn-light rounded-pill px-4 border" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-warning text-white rounded-pill px-4 border-0">Cập nhật</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Unit Modal -->
+<div class="modal fade" id="deleteUnitModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-25 shadow-lg">
+            <div class="modal-header bg-danger text-white border-0 py-3">
+                <h5 class="modal-title fw-bold"><span class="material-symbols-rounded align-middle me-2">warning</span>Xác nhận xóa</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="text-center mb-3">
+                    <span class="material-symbols-rounded" style="font-size: 4rem; color: var(--danger);">delete_forever</span>
+                </div>
+                <p class="text-center mb-1">Bạn có chắc chắn muốn xóa đơn vị</p>
+                <h5 class="text-center text-danger fw-bold" id="deleteUnitName"></h5>
+            </div>
+            <div class="modal-footer border-0 p-4 pt-0" style="border-radius: 0 0 25px 25px;">
+                <button type="button" class="btn btn-light rounded-pill px-4 border" data-bs-dismiss="modal">Hủy bỏ</button>
+                <form action="/Units/Delete" method="post" class="m-0">
+                    <input type="hidden" name="Id" id="deleteUnitId">
+                    <button type="submit" class="btn btn-danger rounded-pill px-4 border-0">Đồng ý xóa</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <!-- Nhúng file phân trang dùng chung -->
+    <script src="~/js/site-pagination.js"></script>
+
+    <script>
+        // 1. KHỞI TẠO DỮ LIỆU VÀ BIẾN PHÂN TRANG
+        let unitsData = @Html.Raw(ViewBag.UnitsJson ?? "[]");
+        let currentPage = 1;
+        let rowsPerPage = 10;
+        let searchQuery = ""; // Biến lưu từ khóa tìm kiếm
+
+        document.addEventListener("DOMContentLoaded", () => {
+            renderTable();
+
+            // ĐÃ FIX: Logic tìm kiếm hoạt động luôn
+            const searchInput = document.getElementById('searchUnit');
+            if (searchInput) {
+                searchInput.addEventListener('input', (e) => {
+                    searchQuery = e.target.value.toLowerCase();
+                    currentPage = 1; // Reset về trang 1
+                    renderTable();
+                });
+            }
+        });
+
+        // 2. HÀM VẼ DÒNG
+        function unitRowTemplate(u, index) {
+            return `
+                <tr>
+                    <td class="ps-4 text-muted small align-middle">${index + 1}</td>
+                    <td class="align-middle">
+                        <strong class="text-dark">${u.name}</strong>
+                        <div class="small text-muted">${u.shortName || ''}</div>
+                    </td>
+                    <td class="text-muted small align-middle">${u.description || '<i class="text-black-50">Không có mô tả</i>'}</td>
+                    <td class="align-middle">
+                        ${u.status
+                            ? '<span class="badge bg-success text-white px-3 py-2 rounded-pill" style="font-size: 0.75rem;">Đang sử dụng</span>'
+                            : '<span class="badge bg-secondary text-white px-3 py-2 rounded-pill" style="font-size: 0.75rem;">Ngừng sử dụng</span>'}
+                    </td>
+                    <td class="text-center pe-4 align-middle">
+                        <div class="d-flex justify-content-center align-items-center">
+                            <button class="btn btn-sm btn-light text-primary rounded shadow-sm mx-1"
+                                    onclick="openEditModal(${u.id})" title="Sửa">
+                                <span class="material-symbols-rounded align-middle" style="font-size: 1.2rem;">edit_square</span>
+                            </button>
+                            <button class="btn btn-sm btn-light text-danger rounded shadow-sm mx-1"
+                                    onclick="openDeleteModal(${u.id}, '${u.name}')" title="Xóa">
+                                <span class="material-symbols-rounded align-middle" style="font-size: 1.2rem;">delete</span>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }
+
+        // 3. HÀM CHUYỂN TRANG
+        function changePage(page) {
+            currentPage = page;
+            renderTable();
+        }
+
+        // 4. GỌI HÀM PHÂN TRANG DÙNG CHUNG
+        function renderTable() {
+            // Lọc dữ liệu theo từ khóa tìm kiếm trước khi phân trang
+            const filteredData = unitsData.filter(u =>
+                u.name.toLowerCase().includes(searchQuery) ||
+                (u.shortName && u.shortName.toLowerCase().includes(searchQuery)) ||
+                (u.description && u.description.toLowerCase().includes(searchQuery))
+            );
+
+            commonPagination(
+                filteredData,
+                currentPage,
+                rowsPerPage,
+                'unitTableBody',
+                'pagination',
+                unitRowTemplate,
+                'changePage'
+            );
+        }
+
+        // 5. CÁC HÀM MODAL
+        function openEditModal(id) {
+            const unit = unitsData.find(u => u.id === id);
+            if(unit) {
+                document.getElementById('editUnitId').value = unit.id;
+                document.getElementById('editUnitName').value = unit.name;
+                document.getElementById('editUnitShortName').value = unit.shortName;
+                document.getElementById('editUnitDescription').value = unit.description;
+                document.getElementById('editStatus').value = unit.status ? 'active' : 'inactive';
+                new bootstrap.Modal(document.getElementById('editUnitModal')).show();
+            }
+        }
+
+        function openDeleteModal(id, name) {
+            document.getElementById('deleteUnitId').value = id;
+            document.getElementById('deleteUnitName').innerText = `"${name}"`;
+            new bootstrap.Modal(document.getElementById('deleteUnitModal')).show();
+        }
+    </script>
+}

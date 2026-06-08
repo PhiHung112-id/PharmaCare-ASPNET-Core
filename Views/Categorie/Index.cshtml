@@ -1,0 +1,384 @@
+﻿@{
+    ViewData["Title"] = "Quản lý nhóm thuốc";
+}
+
+<div class="container-fluid fade-in px-4">
+    <div class="card shadow-sm border-0 rounded-xl mb-4 mt-3">
+        <div class="card-body p-3">
+            <div class="row align-items-center">
+                <div class="col-xl-3 col-lg-12 mb-3 mb-xl-0">
+                    <h1 class="h4 mb-0 text-gray-800 font-weight-bold">Nhóm thuốc</h1>
+                    <p class="text-muted small mb-0 text-nowrap">Quản lý và phân loại danh mục</p>
+                </div>
+                <div class="col-xl-6 col-lg-8">
+                    <div class="row g-2">
+                        <div class="col-md-5">
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text bg-light border-light rounded-start-pill ps-3">
+                                    <span class="material-symbols-rounded text-muted" style="font-size: 1.1rem;">search</span>
+                                </span>
+                                <input type="text" id="searchCategory" class="form-control border-light bg-light rounded-end-pill" placeholder="Tên nhóm, mô tả...">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <select id="drugCountFilter" class="form-select form-select-sm rounded-pill border-light bg-light">
+                                <option value="">Lọc theo số lượng</option>
+                                <option value="empty">Chưa có thuốc (0)</option>
+                                <option value="low">Ít thuốc (1-10)</option>
+                                <option value="high">Nhiều thuốc (>10)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <select id="sortCategories" class="form-select form-select-sm rounded-pill border-light bg-light">
+                                <option value="name-asc">Tên A-Z</option>
+                                <option value="drugs-desc">SL giảm dần</option>
+                                <option value="drugs-asc">SL tăng dần</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-lg-4 text-xl-end mt-3 mt-xl-0 d-flex justify-content-xl-end gap-2">
+                    <a href="@Url.Action("Trash")" class="btn btn-light btn-sm shadow-sm rounded-pill px-3 border" title="Thùng rác">
+                        <span class="material-symbols-rounded" style="font-size: 1.1rem; vertical-align: middle;">delete_sweep</span>
+                    </a>
+                    <button class="btn btn-success btn-sm shadow-sm rounded-pill px-3" onclick="exportToExcel()">
+                        <span class="material-symbols-rounded" style="font-size: 1.1rem; vertical-align: middle;">download</span>
+                    </button>
+                    <button class="btn btn-primary btn-sm rounded-pill px-3"
+                            data-bs-toggle="modal"
+                            data-bs-target="#addCategoryModal">
+                        <span class="material-symbols-rounded align-middle">add</span> Thêm nhóm
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. STATS ROW -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card border-0 shadow-sm h-100 bg-gradient-indigo text-white rounded-20">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-white-50 small">Tổng số nhóm</div>
+                        <div class="h4 mb-0 font-weight-bold">@ViewBag.TotalCategories</div>
+                    </div>
+                    <span class="material-symbols-rounded opacity-5" style="font-size: 2.5rem;">category</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card border-0 shadow-sm h-100 bg-gradient-success text-white rounded-20" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-white-50 small">Tổng số thuốc</div>
+                        <div class="h4 mb-0 font-weight-bold">@ViewBag.TotalDrugs</div>
+                    </div>
+                    <span class="material-symbols-rounded opacity-5" style="font-size: 2.5rem;">medication</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card border-0 shadow-sm h-100 bg-gradient-amber text-white rounded-20">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-white-50 small">TB thuốc/nhóm</div>
+                        <div class="h4 mb-0 font-weight-bold">@ViewBag.AvgDrugs</div>
+                    </div>
+                    <span class="material-symbols-rounded opacity-5" style="font-size: 2.5rem;">trending_up</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card border-0 shadow-sm h-100 bg-gradient-rose text-white rounded-20">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-white-50 small">Nhóm tạm dừng</div>
+                        <div class="h4 mb-0 font-weight-bold">@ViewBag.InactiveCount</div>
+                    </div>
+                    <span class="material-symbols-rounded opacity-5" style="font-size: 2.5rem;">warning</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. MAIN TABLE -->
+    <div class="row">
+        <div class="col-12 mb-4">
+            <div class="card shadow-sm border-0 rounded-25 overflow-hidden h-100">
+                <div class="card-header bg-white py-3 border-0 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary small text-uppercase">📋 Danh sách nhóm thuốc</h6>
+                </div>
+                <div class="card-body p-0 d-flex flex-column">
+                    <div class="table-responsive flex-grow-1">
+                        <table class="table table-hover align-middle mb-0" id="categoryTable">
+                            <thead class="text-muted small font-weight-bold text-uppercase">
+                                <tr>
+                                    <th class="pl-4" style="width: 100px;">Mã</th>
+                                    <th style="width: 250px;">Tên nhóm</th>
+                                    <th>Mô tả</th>
+                                    <th style="width: 150px;">Số lượng thuốc</th>
+                                    <th style="width: 150px;">Trạng thái</th>
+                                    <th style="width: 150px;" class="text-center pr-4">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody id="categoryTableBody"></tbody>
+                        </table>
+                    </div>
+                    <div class="p-4 border-top mt-auto">
+                        <div class="d-sm-flex justify-content-between align-items-center">
+                            <div class="small text-muted mb-2 mb-sm-0">
+                                Hiển thị <span id="showingStart" class="font-weight-bold text-dark">0</span> - <span id="showingEnd" class="font-weight-bold text-dark">0</span> của <span id="totalRecords" class="font-weight-bold text-dark">0</span> nhóm
+                            </div>
+                            <nav><ul class="pagination pagination-sm mb-0 rounded-pill shadow-sm" id="pagination"></ul></nav>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL THÊM -->
+<div class="modal fade" id="addCategoryModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-25 shadow-lg">
+            <div class="modal-header bg-primary text-white border-0 py-3">
+                <h5 class="modal-title font-weight-bold"><span class="material-symbols-rounded align-middle me-2">add_box</span>Thêm nhóm thuốc mới</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="/nhom-thuoc/them" method="post">
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label small font-weight-bold text-muted">TÊN NHÓM THUỐC (*)</label>
+                        <input type="text" name="Name" class="form-control rounded-pill bg-light border-light px-3" required placeholder="VD: Kháng sinh, Giảm đau...">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small font-weight-bold text-muted">MÔ TẢ</label>
+                        <textarea name="Description" class="form-control rounded-xl bg-light border-light p-3" rows="3" placeholder="Nhập mô tả..."></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small font-weight-bold text-muted">TRẠNG THÁI</label>
+                        <select name="Status" class="form-select rounded-pill bg-light border-light px-3">
+                            <option value="active">Hoạt động</option>
+                            <option value="inactive">Tạm dừng</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 p-4 pt-0" style="border-radius: 0 0 25px 25px;">
+                    <button type="button" class="btn btn-light rounded-pill px-4 border" data-bs-dismiss="modal">Hủy bỏ</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4 bg-gradient-indigo border-0">Lưu lại</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL CẬP NHẬT -->
+<div class="modal fade" id="editCategoryModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-25 shadow-lg">
+            <div class="modal-header bg-warning text-white border-0 py-3">
+                <h5 class="modal-title font-weight-bold"><span class="material-symbols-rounded align-middle me-2">edit</span>Cập nhật nhóm thuốc</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="/nhom-thuoc/sua" method="post">
+                <div class="modal-body p-4">
+                    <input type="hidden" name="Id" id="editId">
+                    <div class="mb-3">
+                        <label class="form-label small font-weight-bold text-muted required">TÊN NHÓM THUỐC</label>
+                        <input type="text" name="Name" id="editName" class="form-control rounded-pill bg-light border-light px-3" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small font-weight-bold text-muted">MÔ TẢ</label>
+                        <textarea name="Description" id="editDesc" class="form-control rounded-xl bg-light border-light p-3" rows="3"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small font-weight-bold text-muted">TRẠNG THÁI</label>
+                        <select name="Status" id="editStatus" class="form-select rounded-pill bg-light border-light px-3">
+                            <option value="active">Hoạt động</option>
+                            <option value="inactive">Tạm dừng</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 p-4 pt-0" style="border-radius: 0 0 25px 25px;">
+                    <button type="button" class="btn btn-light rounded-pill px-4 border" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-warning text-white rounded-pill px-4 border-0">Cập nhật</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL XÓA MỀM (VÀO THÙNG RÁC) -->
+<div class="modal fade" id="deleteCategoryModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-25 shadow-lg">
+            <div class="modal-header bg-danger text-white border-0 py-3">
+                <h5 class="modal-title font-weight-bold"><span class="material-symbols-rounded align-middle me-2">warning</span>Xác nhận xóa</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="/nhom-thuoc/xoa-mem" method="post">
+                <div class="modal-body p-4">
+                    <input type="hidden" name="Id" id="deleteId">
+                    <div class="text-center mb-3">
+                        <span class="material-symbols-rounded" style="font-size: 4rem; color: #dc2626;">delete_sweep</span>
+                    </div>
+                    <p class="text-center mb-1">Bạn có chắc chắn muốn xóa nhóm thuốc</p>
+                    <h5 class="text-center text-danger font-weight-bold" id="deleteName"></h5>
+                    <div class="alert alert-warning mt-4 border-0 rounded-xl">
+                        <span class="material-symbols-rounded align-middle me-1" style="font-size: 1.1rem;">info</span>
+                        <strong>Lưu ý:</strong> Nhóm này sẽ được chuyển vào <strong>Thùng rác</strong> và có thể khôi phục sau. Thuốc thuộc nhóm không bị ảnh hưởng.
+                    </div>
+                </div>
+                <div class="modal-footer border-0 p-4 pt-0" style="border-radius: 0 0 25px 25px;">
+                    <button type="button" class="btn btn-light rounded-pill px-4 border" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-danger rounded-pill px-4 border-0">Đồng ý xóa</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="~/js/site-pagination.js"></script>
+
+    <script>
+        let categoriesData = @Html.Raw(ViewBag.CategoriesJson ?? "[]");
+        let currentPage = 1;
+        let rowsPerPage = 10;
+        let filters = { search: '', drugCount: '', sort: 'name-asc' };
+
+        document.addEventListener("DOMContentLoaded", () => {
+            renderTable();
+            ['searchCategory', 'drugCountFilter', 'sortCategories'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.addEventListener('change', updateFilters);
+                    if (id === 'searchCategory') el.addEventListener('input', updateFilters);
+                }
+            });
+        });
+
+        function updateFilters() {
+            filters.search = document.getElementById('searchCategory').value.toLowerCase();
+            filters.drugCount = document.getElementById('drugCountFilter').value;
+            filters.sort = document.getElementById('sortCategories').value;
+            currentPage = 1;
+            renderTable();
+        }
+
+        function filterAndSortData() {
+            let res = categoriesData.filter(d => d.name.toLowerCase().includes(filters.search) || d.id.toLowerCase().includes(filters.search));
+
+            if (filters.drugCount === 'empty') res = res.filter(d => d.drugCount === 0);
+            if (filters.drugCount === 'low') res = res.filter(d => d.drugCount > 0 && d.drugCount <= 10);
+            if (filters.drugCount === 'high') res = res.filter(d => d.drugCount > 10);
+
+            if (filters.sort === 'name-asc') res.sort((a,b) => a.name.localeCompare(b.name));
+            if (filters.sort === 'drugs-desc') res.sort((a,b) => b.drugCount - a.drugCount);
+            if (filters.sort === 'drugs-asc') res.sort((a,b) => a.drugCount - b.drugCount);
+            return res;
+        }
+
+        function changePage(page) {
+            currentPage = page;
+            renderTable();
+        }
+
+        function categoryRowRenderer(c, index) {
+            return `
+                <tr>
+                    <td class="pl-4 text-muted small font-weight-bold align-middle">${c.id}</td>
+                    <td class="align-middle">
+                        <a href="/nhom-thuoc/chi-tiet/${c.id}" class="text-dark font-weight-bold text-decoration-none">${c.name}</a>
+                    </td>
+                    <td class="text-muted small align-middle">${c.description || '<i class="text-black-50">Không có mô tả</i>'}</td>
+                    <td class="align-middle">
+                        <span class="badge bg-light text-primary px-3 rounded-pill">${c.drugCount} thuốc</span>
+                    </td>
+                    <td class="align-middle">
+                        ${c.status
+                            ? '<span class="badge bg-success text-white px-3 py-2 rounded-pill" style="font-size: 0.75rem;">Hoạt động</span>'
+                            : '<span class="badge bg-secondary text-white px-3 py-2 rounded-pill" style="font-size: 0.75rem;">Tạm dừng</span>'}
+                    </td>
+                    <td class="text-center pr-4 align-middle">
+
+                        <div class="d-flex justify-content-center align-items-center gap-2">
+
+                            <!-- Nút Sửa -->
+                            <button class="btn btn-sm btn-light text-primary rounded shadow-sm mx-1"
+                                    onclick="openEditModal('${c.id}')" title="Sửa">
+                                <span class="material-symbols-rounded align-middle" style="font-size: 1.2rem;">edit_square</span>
+                            </button>
+
+                            <!-- Nút Xóa -->
+                            <button class="btn btn-sm btn-light text-danger rounded shadow-sm mx-1"
+                                    onclick="openDeleteModal('${c.id}', '${c.name}')" title="Xóa">
+                                <span class="material-symbols-rounded align-middle" style="font-size: 1.2rem;">delete</span>
+                            </button>
+
+                        </div>
+
+                    </td>
+                </tr>
+            `;
+        }
+
+        function renderTable() {
+            const filteredData = filterAndSortData();
+
+            commonPagination(
+                filteredData,
+                currentPage,
+                rowsPerPage,
+                'categoryTableBody',
+                'pagination',
+                categoryRowRenderer,
+                'changePage'
+            );
+
+            const totalCatEl = document.getElementById('statTotalCategories');
+            const totalDrugEl = document.getElementById('statTotalDrugs');
+            if (totalCatEl) totalCatEl.innerText = filteredData.length;
+            if (totalDrugEl) totalDrugEl.innerText = filteredData.reduce((sum, c) => sum + c.drugCount, 0);
+        }
+
+        function openEditModal(id) {
+            const cat = categoriesData.find(c => c.id === id);
+            if(cat) {
+                document.getElementById('editId').value = cat.id;
+                document.getElementById('editName').value = cat.name;
+                document.getElementById('editDesc').value = cat.description;
+                document.getElementById('editStatus').value = cat.status ? 'active' : 'inactive';
+                new bootstrap.Modal(document.getElementById('editCategoryModal')).show();
+            }
+        }
+
+        function openDeleteModal(id, name) {
+            document.getElementById('deleteId').value = id;
+            document.getElementById('deleteName').innerText = `"${name}"`;
+            new bootstrap.Modal(document.getElementById('deleteCategoryModal')).show();
+        }
+
+        function exportToExcel() {
+            if (categoriesData.length === 0) {
+                alert("Không có dữ liệu để xuất!");
+                return;
+            }
+            const exportData = categoriesData.map(c => ({
+                "Mã Nhóm": c.id,
+                "Tên Nhóm": c.name,
+                "Mô Tả": c.description,
+                "Số Lượng Thuốc": c.drugCount,
+                "Trạng Thái": c.status ? "Hoạt động" : "Tạm dừng"
+            }));
+            const ws = XLSX.utils.json_to_sheet(exportData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "NhomThuoc");
+            const date = new Date().toISOString().slice(0, 10);
+            XLSX.writeFile(wb, `DanhSachNhomThuoc_${date}.xlsx`);
+        }
+    </script>
+}

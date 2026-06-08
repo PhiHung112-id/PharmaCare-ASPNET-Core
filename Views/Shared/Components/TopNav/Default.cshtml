@@ -1,0 +1,172 @@
+﻿@{
+    var fullName = User.Identity?.IsAuthenticated == true ? User.Identity.Name : "Khách";
+    var role = User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Role)?.Value ?? "Chưa rõ";
+
+    string initials = "??";
+    if (!string.IsNullOrEmpty(fullName) && fullName != "Khách")
+    {
+        var names = fullName.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (names.Length >= 2)
+        {
+            initials = names[names.Length - 2].Substring(0, 1) + names[names.Length - 1].Substring(0, 1);
+        }
+        else if (names.Length == 1)
+        {
+            initials = names[0].Substring(0, Math.Min(2, names[0].Length));
+        }
+    }
+}
+
+<nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow-sm border-bottom">
+    <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3 text-success">
+        <span class="material-symbols-rounded align-middle">menu</span>
+    </button>
+
+    <form class="d-none d-sm-inline-block form-inline mr-auto ml-md-3 my-2 my-md-0 mw-100 navbar-search position-relative" id="topbarSearchForm">
+        <div class="input-group shadow-sm" style="border-radius: 25px; overflow: hidden;">
+            <input type="text" id="topSearchInput" class="form-control bg-light border-0 small px-4 py-4" placeholder="Tìm kiếm thuốc, hóa đơn, khách hàng..." aria-label="Search" style="height: 45px; box-shadow: none;" autocomplete="off">
+            <div class="input-group-append">
+                <button class="btn btn-success border-0 px-4" type="button" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                    <span class="material-symbols-rounded align-middle" style="font-size: 1.2rem;">search</span>
+                </button>
+            </div>
+        </div>
+
+        <div id="topSearchResults" class="dropdown-menu shadow border-0 w-100 mt-2 rounded-25" style="position: absolute; top: 100%; left: 0; display: none; max-height: 400px; overflow-y: auto; z-index: 1000; border-radius: 15px;">
+        </div>
+    </form>
+
+    <ul class="navbar-nav ml-auto align-items-center">
+
+        <li class="nav-item mx-1">
+            <button class="dark-mode-toggle btn btn-light rounded-circle shadow-sm d-flex align-items-center justify-content-center"
+                    style="width: 40px; height: 40px; border: 1px solid #e3e6f0;" title="Bật/Tắt giao diện tối">
+                <i class="fas fa-moon text-gray-600" style="font-size: 1.2rem;"></i>
+            </button>
+        </li>
+
+        <!-- Cảnh báo giới hạn (Hết hạn thuốc) -->
+        <li class="nav-item dropdown no-arrow mx-1">
+            <a class="nav-link dropdown-toggle" href="#" id="alertsDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <span class="material-symbols-rounded text-gray-500" style="font-size: 1.5rem;">notifications</span>
+                <span class="position-absolute top-25 start-75 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem; transform: translate(-10px, -10px);">
+                    5
+                </span>
+            </a>
+            <!-- Dropdown Cảnh báo -->
+            <div class="dropdown-list dropdown-menu dropdown-menu-right shadow-lg animated--grow-in border-0 rounded-25 overflow-hidden" aria-labelledby="alertsDropdown">
+                <div class="dropdown-header bg-danger text-white border-0 py-3">
+                    <h6 class="m-0 font-weight-bold d-flex align-items-center">
+                        <span class="material-symbols-rounded me-2">warning</span> Cảnh báo hệ thống
+                    </h6>
+                </div>
+                <a class="dropdown-item d-flex align-items-center py-3 border-bottom" href="#">
+                    <div class="mr-3">
+                        <div class="icon-circle bg-warning-light text-warning" style="width: 45px; height: 45px; background: #fef3c7; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                            <span class="material-symbols-rounded">medication</span>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="small text-gray-500 mb-1">Hết hạn trong 10 ngày</div>
+                        <span class="font-weight-bold text-dark">Paracetamol lô AC-2023 sắp hết hạn!</span>
+                    </div>
+                </a>
+                <a class="dropdown-item d-flex align-items-center py-3 border-bottom" href="#">
+                    <div class="mr-3">
+                        <div class="icon-circle text-danger" style="width: 45px; height: 45px; background: #fee2e2; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                            <span class="material-symbols-rounded">inventory_2</span>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="small text-gray-500 mb-1">Tồn kho thấp</div>
+                        <span class="font-weight-bold text-dark">Khẩu trang y tế 3M chỉ còn 2 hộp!</span>
+                    </div>
+                </a>
+                <a class="dropdown-item text-center small text-primary py-3 font-weight-bold" href="#">Xem tất cả thông báo</a>
+            </div>
+        </li>
+
+        <div class="topbar-divider d-none d-sm-block mx-3"></div>
+
+        <!-- Thông tin User -->
+        <li class="nav-item dropdown no-arrow">
+            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <div class="d-flex flex-column text-right mr-3 d-none d-lg-block">
+                    <span class="text-gray-800 font-weight-bold small">@fullName</span>
+                    <span class="text-success small" style="font-size: 0.75rem;">@role</span>
+                </div>
+                <div class="avatar-soft-navy d-flex align-items-center justify-content-center fw-bold rounded-circle shadow-sm"
+                     style="width: 40px; height: 40px; background: #e0e7ff; color: #3730a3;">
+                    @initials.ToUpper()
+                </div>
+            </a>
+            <div class="dropdown-menu dropdown-menu-right shadow-lg animated--grow-in border-0 rounded-25 mt-2" aria-labelledby="userDropdown">
+                <a class="dropdown-item py-2 d-flex align-items-center text-danger" asp-route="LogoutPage" >
+                    <span class="material-symbols-rounded mr-2" style="font-size: 1.2rem;">logout</span> Đăng xuất
+                </a>
+            </div>
+        </li>
+
+    </ul>
+</nav>
+
+<!-- JAVASCRIPT XỬ LÝ TÌM KIẾM TRỰC TIẾP -->
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const searchInput = document.getElementById('topSearchInput');
+        const searchResults = document.getElementById('topSearchResults');
+        const searchForm = document.getElementById('topbarSearchForm');
+
+        const drugUrl = '@Url.RouteUrl("DrugPage")';
+        const invoiceUrl = '@Url.RouteUrl("InvoicePage")';
+
+        searchInput.addEventListener('input', function () {
+            const query = this.value.trim().toLowerCase();
+
+            if (query.length > 0) {
+                searchResults.style.display = 'block';
+
+                searchResults.innerHTML = `
+                    <div class="p-2">
+                        <h6 class="dropdown-header text-primary font-weight-bold text-uppercase" style="font-size: 0.75rem;">Sản phẩm (${query})</h6>
+                        <a class="dropdown-item d-flex align-items-center py-2 rounded-3" href="${drugUrl}">
+                            <div class="icon-circle bg-light text-info me-3" style="width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                <span class="material-symbols-rounded" style="font-size: 1.2rem;">medication</span>
+                            </div>
+                            <div>
+                                <span class="d-block font-weight-bold text-dark">Paracetamol 500mg</span>
+                                <span class="small text-muted">Hộp 10 vỉ x 10 viên - Tồn kho: <b class="text-success">150</b></span>
+                            </div>
+                        </a>
+                        <div class="dropdown-divider"></div>
+
+                        <h6 class="dropdown-header text-success font-weight-bold text-uppercase" style="font-size: 0.75rem;">Hóa đơn (${query})</h6>
+                        <a class="dropdown-item d-flex align-items-center py-2 rounded-3" href="${invoiceUrl}">
+                            <div class="icon-circle bg-light text-success me-3" style="width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                <span class="material-symbols-rounded" style="font-size: 1.2rem;">receipt_long</span>
+                            </div>
+                            <div>
+                                <span class="d-block font-weight-bold text-dark">HĐ-${Math.floor(1000 + Math.random() * 9000)}</span>
+                                <span class="small text-muted">Khách lẻ - <b class="text-danger">250.000đ</b></span>
+                            </div>
+                        </a>
+                    </div>
+                `;
+            } else {
+                searchResults.style.display = 'none';
+            }
+        });
+
+        document.addEventListener('click', function (e) {
+            if (!searchForm.contains(e.target)) {
+                searchResults.style.display = 'none';
+            }
+        });
+
+        searchInput.addEventListener('focus', function () {
+            if (this.value.trim().length > 0) {
+                searchResults.style.display = 'block';
+            }
+        });
+    });
+</script>
